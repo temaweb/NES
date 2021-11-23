@@ -15,14 +15,19 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+      # Creates build directory. Full paths should be given. 
+      # Any parent directories that do not exist will also be created.
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build
 
+      # Configure cmake 
+      # Creates cmake build prepared files in build directory
     - name: Configure CMake
       shell: bash
       working-directory: ${{github.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
+      # Build project in $BUILD_TYPE mode
     - name: Build
       shell: bash
       working-directory: ${{github.workspace}}/build
