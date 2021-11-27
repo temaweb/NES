@@ -19,6 +19,8 @@
 #define CPU_HPP
 
 #include <cstdint>
+#include <string>
+#include <array>
 
 class Cpu
 {
@@ -104,98 +106,124 @@ private:
     uint16_t pc = 0x0000;
 
     //
-    // Addressing modes
+    // 6502 general instruction list row
     //
 
-    void IMM  ();
-    void ABS  ();
-    void ZP   ();
-    void IMP  ();
-    void ACC  ();
-    void ABSX ();
-    void ABSY ();
-    void ZPX  ();
-    void ZPY  ();
-    void IND  ();
-    void INDX ();
-    void INDY ();
-    void REL  ();
+    struct Command 
+    {
+        // Operation instruction implementation
+        uint8_t (Cpu::*inst) (void);
+
+        // Addressing mode implementation
+        void (Cpu::*mode) (void);
+
+        // Execute command
+        void execute(Cpu * cpu);
+    };
+
+    // Instruction list (include all illegal codes)
+    std::array<Command, 0xFF> commands;
+
+    //
+    // Address Modes
+    //
+
+    void IMM  (); // immediate              
+    void ABS  (); // absolute               
+    void ABSX (); // absolute, X-indexed    
+    void ABSY (); // absolute, Y-indexed 
+
+    void ZPG  (); // zeropage
+    void ZPGX (); // zeropage, X-indexed
+    void ZPGY (); // zeropage, Y-indexed
+
+    void IMP  (); // implied
+    void ACC  (); // accumulator
+    void IND  (); // indirect
+    void INDX (); // X-indexed, indirect
+    void INDY (); // indirect, Y-indexed
+    void REL  (); // relative
 
     //
     // Instruction set
     //
 
-    void ADC(); // Add Memory to Accumulator with Carry
-    void AND(); // "AND" Memory with Accumulator
-    void ASL(); // Shift Left One Bit (Memory or Accumulator)
+    uint8_t ADC(); // Add Memory to Accumulator with Carry
+    uint8_t ANC(); //
+    uint8_t AND(); // "AND" Memory with Accumulator
+    uint8_t ASL(); // Shift Left One Bit (Memory or Accumulator)
 
-    void BCC(); // Branch on Carry Clear
-    void BCS(); // Branch on Carry Set
-    void BEQ(); // Branch on Result Zero
-    void BIT(); // Test Bits in Memory with Accumulator
-    void BMI(); // Branch on Result Minus
-    void BNE(); // Branch on Result not Zero
-    void BPL(); // Branch on Result Plus
-    void BRK(); // Force Break
-    void BVC(); // Branch on Overflow Clear
-    void BVS(); // Branch on Overflow Set
+    uint8_t BCC(); // Branch on Carry Clear
+    uint8_t BCS(); // Branch on Carry Set
+    uint8_t BEQ(); // Branch on Result Zero
+    uint8_t BIT(); // Test Bits in Memory with Accumulator
+    uint8_t BMI(); // Branch on Result Minus
+    uint8_t BNE(); // Branch on Result not Zero
+    uint8_t BPL(); // Branch on Result Plus
+    uint8_t BRK(); // Force Break
+    uint8_t BVC(); // Branch on Overflow Clear
+    uint8_t BVS(); // Branch on Overflow Set
 
-    void CLC(); // Clear Carry Flag
-    void CLD(); // Clear Decimal Mode
-    void CLI(); // Clear interrupt Disable Bit
-    void CLV(); // Clear Overflow Flag
-    void CMP(); // Compare Memory and Accumulator
-    void CPX(); // Compare Memory and Index X
-    void CPY(); // Compare Memory and Index Y
+    uint8_t CLC(); // Clear Carry Flag
+    uint8_t CLD(); // Clear Decimal Mode
+    uint8_t CLI(); // Clear interrupt Disable Bit
+    uint8_t CLV(); // Clear Overflow Flag
+    uint8_t CMP(); // Compare Memory and Accumulator
+    uint8_t CPX(); // Compare Memory and Index X
+    uint8_t CPY(); // Compare Memory and Index Y
 
-    void DEC(); // Decrement Memory by One
-    void DEX(); // Decrement Index X by One
-    void DEY(); // Decrement Index Y by One
+    uint8_t DEC(); // Decrement Memory by One
+    uint8_t DEX(); // Decrement Index X by One
+    uint8_t DEY(); // Decrement Index Y by One
 
-    void EOR(); // "Exclusive-Or" Memory with Accumulator
+    uint8_t EOR(); // "Exclusive-Or" Memory with Accumulator
 
-    void INC(); // Increment Memory by One
-    void INX(); // Increment Index X by One
-    void INY(); // Increment Index Y by One
+    uint8_t INC(); // Increment Memory by One
+    uint8_t INX(); // Increment Index X by One
+    uint8_t INY(); // Increment Index Y by One
 
-    void JMP(); // Jump to New Location
-    void JSR(); // Jump to New Location Saving Return Address
+    uint8_t JAM(); // These instructions freeze the CPU.
+    uint8_t JMP(); // Jump to New Location
+    uint8_t JSR(); // Jump to New Location Saving Return Address
 
-    void LDA(); // Load Accumulator with Memory
-    void LDX(); // Load Index X with Memory
-    void LDY(); // Load Index Y with Memory
-    void LSR(); // Shift Right One Bit (Memory or Accumulator)
+    uint8_t LDA(); // Load Accumulator with Memory
+    uint8_t LDX(); // Load Index X with Memory
+    uint8_t LDY(); // Load Index Y with Memory
+    uint8_t LSR(); // Shift Right One Bit (Memory or Accumulator)
 
-    void NOP(); // No Operation
+    uint8_t NOP(); // No Operation
 
-    void ORA(); // "OR" Memory with Accumulator
+    uint8_t ORA(); // "OR" Memory with Accumulator
 
-    void PHA(); // Push Accumulator on Stack
-    void PHP(); // Push Processor Status on Stack
-    void PLA(); // Pull Accumulator from Stack
-    void PLP(); // Pull Processor Status from Stack
+    uint8_t PHA(); // Push Accumulator on Stack
+    uint8_t PHP(); // Push Processor Status on Stack
+    uint8_t PLA(); // Pull Accumulator from Stack
+    uint8_t PLP(); // Pull Processor Status from Stack
 
-    void ROL(); // Rotate One Bit Left (Memory or Accumulator)
-    void ROR(); // Rotate One Bit Right (Memory or Accumulator)
-    void RTI(); // Return from Interrupt
-    void RTS(); // Return from Subroutine
+    uint8_t ROL(); // Rotate One Bit Left (Memory or Accumulator)
+    uint8_t ROR(); // Rotate One Bit Right (Memory or Accumulator)
+    uint8_t RTI(); // Return from Interrupt
+    uint8_t RTS(); // Return from Subroutine
 
-    void SBC(); // Subtract Memory from Accumulator with Borrow
-    void SEC(); // Set Carry Flag
-    void SED(); // Set Decimal Mode
-    void SEI(); // Set Interrupt Disable Status
-    void STA(); // Store Accumulator in Memory
-    void STX(); // Store Index X in Memory
-    void STY(); // Store Index Y in Memory
+    uint8_t SBC(); // Subtract Memory from Accumulator with Borrow
+    uint8_t SEC(); // Set Carry Flag
+    uint8_t SED(); // Set Decimal Mode
+    uint8_t SEI(); // Set Interrupt Disable Status
+    uint8_t SLO(); 
+    uint8_t STA(); // Store Accumulator in Memory
+    uint8_t STX(); // Store Index X in Memory
+    uint8_t STY(); // Store Index Y in Memory
 
-    void TAX(); // Transfer Accumulator to Index X
-    void TAY(); // Transfer Accumulator to Index Y
-    void TSX(); // Transfer Stack Pointer to Index X
-    void TXA(); // Transfer Index X to Accumulator
-    void TXS(); // Transfer Index X to Stack Pointer
-    void TYA(); // Transfer Index Y to Accumulator
+    uint8_t TAX(); // Transfer Accumulator to Index X
+    uint8_t TAY(); // Transfer Accumulator to Index Y
+    uint8_t TSX(); // Transfer Stack Pointer to Index X
+    uint8_t TXA(); // Transfer Index X to Accumulator
+    uint8_t TXS(); // Transfer Index X to Stack Pointer
+    uint8_t TYA(); // Transfer Index Y to Accumulator
 
 public:
+
+    Cpu();
 
     void clock ();
     void reset ();

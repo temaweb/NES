@@ -10,6 +10,13 @@ project(NES VERSION 1.0)
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
 
-# create exaemulator target
-add_executable(emulator "src/main.cc")
+# create emulator target
+add_executable(emulator)
+
+# Add emulator sources
+target_sources(emulator PRIVATE 
+    "src/main.cc" 
+    "src/cpu.cc"
+)
+
 target_link_libraries(emulator ${SDL2_LIBRARIES})

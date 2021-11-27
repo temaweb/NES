@@ -16,6 +16,7 @@
  */
 
 #include <SDL.h>
+#include "cpu.hpp"
 
 void loop()
 {
