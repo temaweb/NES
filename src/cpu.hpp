@@ -122,7 +122,7 @@ private:
     };
 
     // Instruction list (include all illegal codes)
-    std::array<Command, 0xFF> commands;
+    std::array<Command, 256> commands; 
 
     //
     // Address Modes
@@ -185,6 +185,7 @@ private:
     uint8_t INC(); // Increment Memory by One
     uint8_t INX(); // Increment Index X by One
     uint8_t INY(); // Increment Index Y by One
+    uint8_t ISC(); //
 
     uint8_t JAM(); // These instructions freeze the CPU.
     uint8_t JMP(); // Jump to New Location
@@ -236,6 +237,8 @@ private:
     uint8_t TXA(); // Transfer Index X to Accumulator
     uint8_t TXS(); // Transfer Index X to Stack Pointer
     uint8_t TYA(); // Transfer Index Y to Accumulator
+
+    uint8_t USBC(); // 
 
 public:
 
