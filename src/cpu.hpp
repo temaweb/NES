@@ -109,7 +109,7 @@ private:
     // 6502 general instruction list row
     //
 
-    struct Command 
+    struct Command
     {
         // Operation instruction implementation
         uint8_t (Cpu::*inst) (void);
@@ -122,16 +122,16 @@ private:
     };
 
     // Instruction list (include all illegal codes)
-    std::array<Command, 256> commands; 
+    std::array<Command, 256> commands;
 
     //
     // Address Modes
     //
 
-    void IMM  (); // immediate              
-    void ABS  (); // absolute               
-    void ABSX (); // absolute, X-indexed    
-    void ABSY (); // absolute, Y-indexed 
+    void IMM  (); // immediate
+    void ABS  (); // absolute
+    void ABSX (); // absolute, X-indexed
+    void ABSY (); // absolute, Y-indexed
 
     void ZPG  (); // zeropage
     void ZPGX (); // zeropage, X-indexed
@@ -208,16 +208,16 @@ private:
     uint8_t PLA(); // Pull Accumulator from Stack
     uint8_t PLP(); // Pull Processor Status from Stack
 
-    uint8_t RLA(); // 
+    uint8_t RLA(); //
     uint8_t ROL(); // Rotate One Bit Left (Memory or Accumulator)
     uint8_t ROR(); // Rotate One Bit Right (Memory or Accumulator)
-    uint8_t RRA(); // 
+    uint8_t RRA(); //
     uint8_t RTI(); // Return from Interrupt
     uint8_t RTS(); // Return from Subroutine
 
     uint8_t SAX(); //
     uint8_t SBC(); // Subtract Memory from Accumulator with Borrow
-    uint8_t SBX(); // 
+    uint8_t SBX(); //
     uint8_t SEC(); // Set Carry Flag
     uint8_t SED(); // Set Decimal Mode
     uint8_t SEI(); // Set Interrupt Disable Status
@@ -238,7 +238,7 @@ private:
     uint8_t TXS(); // Transfer Index X to Stack Pointer
     uint8_t TYA(); // Transfer Index Y to Accumulator
 
-    uint8_t USBC(); // 
+    uint8_t USBC(); //
 
 public:
 

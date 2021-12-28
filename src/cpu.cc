@@ -7,7 +7,7 @@
  * the Free Software Foundation, version 3.
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY{ return 0x00; } without even the implied warranty of
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
@@ -272,7 +272,7 @@ Cpu::Cpu()
 
         { &Cpu::BNE, &Cpu::REL  }, // 0xD0
         { &Cpu::CMP, &Cpu::INDY }, // 0xD1
-        { &Cpu::JAM, &Cpu::IMP  }, // 0xD2 *	
+        { &Cpu::JAM, &Cpu::IMP  }, // 0xD2 *
         { &Cpu::DCP, &Cpu::INDY }, // 0xD3 *
         { &Cpu::NOP, &Cpu::ZPGX }, // 0xD4 *
         { &Cpu::CMP, &Cpu::ZPGX }, // 0xD5
@@ -280,7 +280,7 @@ Cpu::Cpu()
         { &Cpu::DCP, &Cpu::ZPGX }, // 0xD7 *
         { &Cpu::CLD, &Cpu::IMP  }, // 0xD8
         { &Cpu::CMP, &Cpu::ABSY }, // 0xD9
-        { &Cpu::NOP, &Cpu::IMP  }, // 0xDA *	
+        { &Cpu::NOP, &Cpu::IMP  }, // 0xDA *
         { &Cpu::DCP, &Cpu::ABSY }, // 0xDB *
         { &Cpu::NOP, &Cpu::ABSX }, // 0xDC *
         { &Cpu::CMP, &Cpu::ABSX }, // 0xDD
@@ -290,40 +290,40 @@ Cpu::Cpu()
         // 0xE0 - 0xEF
 
         { &Cpu::CPX,  &Cpu::IMM  }, // 0xE0
-        { &Cpu::SBC,  &Cpu::INDX }, // 0xE1	
+        { &Cpu::SBC,  &Cpu::INDX }, // 0xE1
         { &Cpu::NOP,  &Cpu::IMM  }, // 0xE2 *
-        { &Cpu::ISC,  &Cpu::INDX }, // 0xE3 *	
-        { &Cpu::CPX,  &Cpu::ZPG  }, // 0xE4	
-        { &Cpu::SBC,  &Cpu::ZPG  }, // 0xE5	
-        { &Cpu::INC,  &Cpu::ZPG  }, // 0xE6	
+        { &Cpu::ISC,  &Cpu::INDX }, // 0xE3 *
+        { &Cpu::CPX,  &Cpu::ZPG  }, // 0xE4
+        { &Cpu::SBC,  &Cpu::ZPG  }, // 0xE5
+        { &Cpu::INC,  &Cpu::ZPG  }, // 0xE6
         { &Cpu::ISC,  &Cpu::ZPG  }, // 0xE7 *
-        { &Cpu::INX,  &Cpu::IMP  }, // 0xE8	
+        { &Cpu::INX,  &Cpu::IMP  }, // 0xE8
         { &Cpu::SBC,  &Cpu::IMM  }, // 0xE9
         { &Cpu::NOP,  &Cpu::IMP  }, // 0xEA
-        { &Cpu::USBC, &Cpu::IMM  }, // 0xEB *	
+        { &Cpu::USBC, &Cpu::IMM  }, // 0xEB *
         { &Cpu::CPX,  &Cpu::ABS  }, // 0xEC
-        { &Cpu::SBC,  &Cpu::ABS  }, // 0xED	
-        { &Cpu::INC,  &Cpu::ABS  }, // 0xEE	
+        { &Cpu::SBC,  &Cpu::ABS  }, // 0xED
+        { &Cpu::INC,  &Cpu::ABS  }, // 0xEE
         { &Cpu::ISC,  &Cpu::ABS  }, // 0xEF *
 
         // 0xF0 - 0xFF
 
-        { &Cpu::BEQ, &Cpu::REL  }, // 0xF0	
+        { &Cpu::BEQ, &Cpu::REL  }, // 0xF0
         { &Cpu::SBC, &Cpu::INDY }, // 0xF1
-        { &Cpu::JAM, &Cpu::IMP  }, // 0xF2 *	
+        { &Cpu::JAM, &Cpu::IMP  }, // 0xF2 *
         { &Cpu::ISC, &Cpu::INDY }, // 0xF3 *
         { &Cpu::NOP, &Cpu::ZPGX }, // 0xF4 *
         { &Cpu::SBC, &Cpu::ZPGX }, // 0xF5
         { &Cpu::INC, &Cpu::ZPGX }, // 0xF6
         { &Cpu::ISC, &Cpu::ZPGX }, // 0xF7 *
         { &Cpu::SED, &Cpu::IMP  }, // 0xF8
-        { &Cpu::SBC, &Cpu::ABSY }, // 0xF9	
-        { &Cpu::NOP, &Cpu::IMP  }, // 0xFA * 
+        { &Cpu::SBC, &Cpu::ABSY }, // 0xF9
+        { &Cpu::NOP, &Cpu::IMP  }, // 0xFA *
         { &Cpu::ISC, &Cpu::ABSY }, // 0xFB *
         { &Cpu::NOP, &Cpu::ABSX }, // 0xFC *
         { &Cpu::SBC, &Cpu::ABSX }, // 0xFD
         { &Cpu::INC, &Cpu::ABSX }, // 0xFE
-        { &Cpu::ISC, &Cpu::ABSX }  // 0xFF * 
+        { &Cpu::ISC, &Cpu::ABSX }  // 0xFF *
     }};
 }
 
@@ -331,20 +331,20 @@ Cpu::Cpu()
 // Address Modes
 //
 
-void Cpu::IMM  () { }          
-void Cpu::ABS  () { }              
-void Cpu::ABSX () { }    
-void Cpu::ABSY () { } 
+void Cpu::IMM  () { }
+void Cpu::ABS  () { }
+void Cpu::ABSX () { }
+void Cpu::ABSY () { }
 
 void Cpu::ZPG  () { }
-void Cpu::ZPGX () { } 
+void Cpu::ZPGX () { }
 void Cpu::ZPGY () { }
 
-void Cpu::IMP  () { } 
-void Cpu::ACC  () { } 
-void Cpu::IND  () { } 
+void Cpu::IMP  () { }
+void Cpu::ACC  () { }
+void Cpu::IND  () { }
 void Cpu::INDX () { }
-void Cpu::INDY () { } 
+void Cpu::INDY () { }
 void Cpu::REL  () { }
 
 //
