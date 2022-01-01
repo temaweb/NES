@@ -16,10 +16,13 @@
  */
 
 #include "cpu.hpp"
+#include "bus.hpp"
 
-Cpu::Cpu()
+Cpu::Cpu(Bus * bus) : bus(bus)
 {
-    commands =
+    #pragma region instructions
+
+    cmd =
     {{
         // 0x00 - 0x0F
 
@@ -325,36 +328,133 @@ Cpu::Cpu()
         { &Cpu::INC, &Cpu::ABSX }, // 0xFE
         { &Cpu::ISC, &Cpu::ABSX }  // 0xFF *
     }};
+
+    #pragma endregion instruction
 }
 
-//
-// Address Modes
-//
+int Cpu::clock ()
+{
+    auto code = bus -> read(pc);  
+    auto oper = cmd.at(code); 
 
-void Cpu::IMM  () { }
-void Cpu::ABS  () { }
-void Cpu::ABSX () { }
-void Cpu::ABSY () { }
+    pc++;
 
-void Cpu::ZPG  () { }
-void Cpu::ZPGX () { }
-void Cpu::ZPGY () { }
+    // Execute command and returns programm cycles
+    return oper.execute(this);
+}
 
-void Cpu::IMP  () { }
-void Cpu::ACC  () { }
-void Cpu::IND  () { }
-void Cpu::INDX () { }
-void Cpu::INDY () { }
-void Cpu::REL  () { }
+void Cpu::reset ()
+{
+    x = 0x00;
+    y = 0x00;
+    p = 0x20;
+    s = 0x00;
+    a = 0x00;
 
-//
-// Instruction set
-//
+    pc = 0x0000;
+}
 
-uint8_t Cpu::ADC() { return 0x00; }
-uint8_t Cpu::ALR() { return 0x00; }
-uint8_t Cpu::ANC() { return 0x00; }
-uint8_t Cpu::AND() { return 0x00; }
+uint8_t Cpu::IMM  () { return 0x00; }
+uint8_t Cpu::ABS  () { return 0x00; }
+uint8_t Cpu::ABSX () { return 0x00; }
+uint8_t Cpu::ABSY () { return 0x00; }
+uint8_t Cpu::ZPG  () { return 0x00; }
+uint8_t Cpu::ZPGX () { return 0x00; }
+uint8_t Cpu::ZPGY () { return 0x00; }
+uint8_t Cpu::IMP  () { return 0x00; }
+uint8_t Cpu::ACC  () { return 0x00; }
+uint8_t Cpu::IND  () { return 0x00; }
+uint8_t Cpu::INDX () { return 0x00; }
+uint8_t Cpu::INDY () { return 0x00; }
+uint8_t Cpu::REL  () { return 0x00; }
+
+
+/*
+    ADC
+    Add Memory to Accumulator with Carry
+ 
+    A + M + C -> A, C                          N Z C I D V
+                                               + + + - - +
+    +--------------+--------------+-----+-------+--------+
+    | addressing   | assembler    | opc | bytes | cycles |
+    +--------------+--------------+-----+-------+--------+
+    | immediate    | ADC #oper    | 69  | 2     | 2      |
+    | zeropage     | ADC oper     | 65  | 2     | 3      |
+    | zeropage,X   | ADC oper,X   | 75  | 2     | 4      |
+    | absolute     | ADC oper     | 6D  | 3     | 4      |
+    | absolute,X   | ADC oper,X   | 7D  | 3     | 4*     |
+    | absolute,Y   | ADC oper,Y   | 79  | 3     | 4*     |
+    | (indirect,X) | ADC (oper,X) | 61  | 2     | 6      |
+    | (indirect),Y | ADC (oper),Y | 71  | 2     | 5*     |
+    +--------------+--------------+-----+-------+--------+
+*/
+
+uint8_t Cpu::ADC() 
+{ 
+    return 0x00; 
+}
+
+/*
+    ALR (ASR)
+    AND oper + LSR
+
+    A AND oper, 0 -> [76543210] -> C      N Z C I D V
+                                          + + + - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | immediate  | ALR #oper | 4B  | 2     | 2      |
+    +------------+-----------+-----+-------+--------+
+*/
+
+uint8_t Cpu::ALR() 
+{
+    return 0x00; 
+}
+
+/*
+    ANC
+    AND oper + set C as ASL
+
+    A AND oper, bit(7) -> C               N Z C I D V
+                                          + + + - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | immediate  | ANC #oper | 0B  | 2     | 2      |
+    +------------+-----------+-----+-------+--------+
+*/
+
+uint8_t Cpu::ANC() 
+{ 
+    return 0x00; 
+}
+
+/*
+    AND
+    And Memory with Accumulator
+
+    A AND M -> A                               N Z C I D V
+                                               + + - - - -
+    +--------------+--------------+-----+-------+--------+
+    | addressing   | assembler    | opc | bytes | cycles |
+    +--------------+--------------+-----+-------+--------+
+    | immediate    | AND #oper    | 29  | 2     | 2      |
+    | zeropage     | AND oper     | 25  | 2     | 3      |
+    | zeropage,X   | AND oper,X   | 35  | 2     | 4      |
+    | absolute     | AND oper     | 2D  | 3     | 4      |
+    | absolute,X   | AND oper,X   | 3D  | 3     | 4*     |
+    | absolute,Y   | AND oper,Y   | 39  | 3     | 4*     |
+    | (indirect,X) | AND (oper,X) | 21  | 2     | 6      |
+    | (indirect),Y | AND (oper),Y | 31  | 2     | 5*     |
+    +--------------+--------------+-----+-------+--------+
+*/
+
+uint8_t Cpu::AND() 
+{ 
+    return 0x00; 
+}
+
 uint8_t Cpu::ANE() { return 0x00; }
 uint8_t Cpu::ARR() { return 0x00; }
 uint8_t Cpu::ASL() { return 0x00; }

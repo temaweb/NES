@@ -16,7 +16,9 @@
  */
 
 #include <SDL.h>
+
 #include "cpu.hpp"
+#include "bus.hpp"
 
 void loop()
 {

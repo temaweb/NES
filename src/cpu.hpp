@@ -22,6 +22,10 @@
 #include <string>
 #include <array>
 
+#include "command.hpp"
+
+class Bus;
+
 class Cpu
 {
 private:
@@ -88,7 +92,7 @@ private:
     //      or by using the flag set or clear instructions.
     //
 
-    uint8_t p = 0x00;
+    uint8_t p = 0x20;
 
 
     //
@@ -105,44 +109,46 @@ private:
 
     uint16_t pc = 0x0000;
 
+
     //
-    // 6502 general instruction list row
+    // 6502 Instruction set
+    //      Inclide all illegal instructions mnemonic table (0x0F x 0x0F)
+    //
+    //      https://www.masswerk.at/6502/6502_instruction_set.html
     //
 
-    struct Command
-    {
-        // Operation instruction implementation
-        uint8_t (Cpu::*inst) (void);
+    std::array<Command, 256> cmd;
 
-        // Addressing mode implementation
-        void (Cpu::*mode) (void);
 
-        // Execute command
-        void execute(Cpu * cpu);
-    };
+    //
+    // BUS  Communication interface
+    //
+    //      Interact with each other devices i.e. RAM, APU, PPU etc.
+    //      Abstract R/W access device
+    //
+    
+    Bus * bus;
 
-    // Instruction list (include all illegal codes)
-    std::array<Command, 256> commands;
 
     //
     // Address Modes
     //
 
-    void IMM  (); // immediate
-    void ABS  (); // absolute
-    void ABSX (); // absolute, X-indexed
-    void ABSY (); // absolute, Y-indexed
+    uint8_t IMM  (); // immediate
+    uint8_t ABS  (); // absolute
+    uint8_t ABSX (); // absolute, X-indexed
+    uint8_t ABSY (); // absolute, Y-indexed
 
-    void ZPG  (); // zeropage
-    void ZPGX (); // zeropage, X-indexed
-    void ZPGY (); // zeropage, Y-indexed
+    uint8_t ZPG  (); // zeropage
+    uint8_t ZPGX (); // zeropage, X-indexed
+    uint8_t ZPGY (); // zeropage, Y-indexed
 
-    void IMP  (); // implied
-    void ACC  (); // accumulator
-    void IND  (); // indirect
-    void INDX (); // X-indexed, indirect
-    void INDY (); // indirect, Y-indexed
-    void REL  (); // relative
+    uint8_t IMP  (); // implied
+    uint8_t ACC  (); // accumulator
+    uint8_t IND  (); // indirect
+    uint8_t INDX (); // X-indexed, indirect
+    uint8_t INDY (); // indirect, Y-indexed
+    uint8_t REL  (); // relative
 
     //
     // Instruction set
@@ -242,9 +248,9 @@ private:
 
 public:
 
-    Cpu();
+    Cpu(Bus * bus);
 
-    void clock ();
+    int clock ();
     void reset ();
 };
 
