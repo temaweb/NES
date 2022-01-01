@@ -155,11 +155,11 @@ private:
     //
 
     uint8_t ADC(); // Add Memory to Accumulator with Carry
-    uint8_t ALR(); //
-    uint8_t ANC(); //
-    uint8_t AND(); // "AND" Memory with Accumulator
-    uint8_t ANE(); //
-    uint8_t ARR(); //
+    uint8_t ALR(); // AND opration and LSR
+    uint8_t ANC(); // AND opration and set C as ASL
+    uint8_t AND(); // AND Memory with Accumulator
+    uint8_t ANE(); // (A OR CONST) and X "AND" operation
+    uint8_t ARR(); // AND opration and ROR
     uint8_t ASL(); // Shift Left One Bit (Memory or Accumulator)
 
     uint8_t BCC(); // Branch on Carry Clear
@@ -181,7 +181,7 @@ private:
     uint8_t CPX(); // Compare Memory and Index X
     uint8_t CPY(); // Compare Memory and Index Y
 
-    uint8_t DCP(); //
+    uint8_t DCP(); // DEC operation and CMP operation
     uint8_t DEC(); // Decrement Memory by One
     uint8_t DEX(); // Decrement Index X by One
     uint8_t DEY(); // Decrement Index Y by One
@@ -191,52 +191,52 @@ private:
     uint8_t INC(); // Increment Memory by One
     uint8_t INX(); // Increment Index X by One
     uint8_t INY(); // Increment Index Y by One
-    uint8_t ISC(); //
+    uint8_t ISC(); // INC oprtation and SBC oper
 
     uint8_t JAM(); // These instructions freeze the CPU.
     uint8_t JMP(); // Jump to New Location
     uint8_t JSR(); // Jump to New Location Saving Return Address
 
-    uint8_t LAS(); //
-    uint8_t LAX(); //
+    uint8_t LAS(); // LDA/TSX operation
+    uint8_t LAX(); // LDA operation and LDX oper
     uint8_t LDA(); // Load Accumulator with Memory
     uint8_t LDX(); // Load Index X with Memory
     uint8_t LDY(); // Load Index Y with Memory
     uint8_t LSR(); // Shift Right One Bit (Memory or Accumulator)
-    uint8_t LXA(); //
+    uint8_t LXA(); // Store * AND oper in A and X
 
     uint8_t NOP(); // No Operation
 
-    uint8_t ORA(); // "OR" Memory with Accumulator
+    uint8_t ORA(); // OR Memory with Accumulator
 
     uint8_t PHA(); // Push Accumulator on Stack
     uint8_t PHP(); // Push Processor Status on Stack
     uint8_t PLA(); // Pull Accumulator from Stack
     uint8_t PLP(); // Pull Processor Status from Stack
 
-    uint8_t RLA(); //
+    uint8_t RLA(); // ROL operation and AND oper
     uint8_t ROL(); // Rotate One Bit Left (Memory or Accumulator)
     uint8_t ROR(); // Rotate One Bit Right (Memory or Accumulator)
-    uint8_t RRA(); //
+    uint8_t RRA(); // ROR operation and ADC oper
     uint8_t RTI(); // Return from Interrupt
     uint8_t RTS(); // Return from Subroutine
 
-    uint8_t SAX(); //
+    uint8_t SAX(); // A and X are put on the bus at the same time and stored in M
     uint8_t SBC(); // Subtract Memory from Accumulator with Borrow
-    uint8_t SBX(); //
+    uint8_t SBX(); // CMP and DEX at once, sets flags like CMP
     uint8_t SEC(); // Set Carry Flag
     uint8_t SED(); // Set Decimal Mode
     uint8_t SEI(); // Set Interrupt Disable Status
-    uint8_t SHA(); //
-    uint8_t SHY(); //
-    uint8_t SHX(); //
-    uint8_t SLO(); //
-    uint8_t SRE(); //
+    uint8_t SHA(); // Stores A AND X AND (high-byte of addr. + 1) at addr.
+    uint8_t SHY(); // Stores Y AND (high-byte of addr. + 1) at addr.
+    uint8_t SHX(); // Stores X AND (high-byte of addr. + 1) at addr.
+    uint8_t SLO(); // ASL operation and ORA operation
+    uint8_t SRE(); // LSR operation and EOR operation
     uint8_t STA(); // Store Accumulator in Memory
     uint8_t STX(); // Store Index X in Memory
     uint8_t STY(); // Store Index Y in Memory
 
-    uint8_t TAS(); //
+    uint8_t TAS(); // Puts A AND X in SP and stores A AND X AND (high-byte of addr. + 1) at addr.
     uint8_t TAX(); // Transfer Accumulator to Index X
     uint8_t TAY(); // Transfer Accumulator to Index Y
     uint8_t TSX(); // Transfer Stack Pointer to Index X
@@ -244,13 +244,13 @@ private:
     uint8_t TXS(); // Transfer Index X to Stack Pointer
     uint8_t TYA(); // Transfer Index Y to Accumulator
 
-    uint8_t USBC(); //
+    uint8_t USBC(); // SBC operation and NOP
 
 public:
 
     Cpu(Bus * bus);
 
-    int clock ();
+    int  clock ();
     void reset ();
 };
 
