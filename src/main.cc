@@ -16,9 +16,12 @@
  */
 
 #include <SDL.h>
+#include <iostream>
+#include <bitset>
 
 #include "cpu.hpp"
 #include "bus.hpp"
+#include "status.hpp"
 
 void loop()
 {
@@ -39,31 +42,38 @@ void loop()
 
 int main()
 {
-    SDL_Init(SDL_INIT_VIDEO);
+    Status s;
 
-    auto window = SDL_CreateWindow ("Emulator", 
+    uint8_t x = 1;
+    uint8_t d = s;
 
-        // the x position of the window
-        SDL_WINDOWPOS_UNDEFINED, 
+    std::cout << std::bitset<8>(d) << std::endl;
 
-        // the y position of the window
-        SDL_WINDOWPOS_UNDEFINED, 
+    // SDL_Init(SDL_INIT_VIDEO);
 
-        800,  // the width of the window, in screen coordinates
-        600,  // the height of the window, in screen coordinates
-        0     // 0, or one or more SDL_WindowFlags OR'd together
-    );
+    // auto window = SDL_CreateWindow ("Emulator", 
 
-    auto renderer = SDL_CreateRenderer (window, -1, SDL_RENDERER_ACCELERATED);
+    //     // the x position of the window
+    //     SDL_WINDOWPOS_UNDEFINED, 
 
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-    SDL_RenderClear(renderer);
-    SDL_RenderPresent(renderer);
+    //     // the y position of the window
+    //     SDL_WINDOWPOS_UNDEFINED, 
 
-    loop();
+    //     800,  // the width of the window, in screen coordinates
+    //     600,  // the height of the window, in screen coordinates
+    //     0     // 0, or one or more SDL_WindowFlags OR'd together
+    // );
 
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+    // auto renderer = SDL_CreateRenderer (window, -1, SDL_RENDERER_ACCELERATED);
 
-    return 0;
+    // SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+    // SDL_RenderClear(renderer);
+    // SDL_RenderPresent(renderer);
+
+    // loop();
+
+    // SDL_DestroyWindow(window);
+    // SDL_Quit();
+
+    // return 0;
 }

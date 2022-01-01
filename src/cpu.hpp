@@ -23,6 +23,7 @@
 #include <array>
 
 #include "command.hpp"
+#include "status.hpp"
 
 class Bus;
 
@@ -92,7 +93,7 @@ private:
     //      or by using the flag set or clear instructions.
     //
 
-    uint8_t p = 0x20;
+    Status p {};
 
 
     //

@@ -347,14 +347,23 @@ void Cpu::reset ()
 {
     x = 0x00;
     y = 0x00;
-    p = 0x20;
+    p = 0x00;
     s = 0x00;
     a = 0x00;
 
     pc = 0x0000;
 }
 
-uint8_t Cpu::IMM  () { return 0x00; }
+//
+// Operand is byte BB
+// Example: OPC #$BB
+//
+
+uint8_t Cpu::IMM () 
+{ 
+    return 0x00; 
+}
+
 uint8_t Cpu::ABS  () { return 0x00; }
 uint8_t Cpu::ABSX () { return 0x00; }
 uint8_t Cpu::ABSY () { return 0x00; }
