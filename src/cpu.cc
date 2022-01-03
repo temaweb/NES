@@ -39,14 +39,47 @@ public:
         return bus -> read(index);
     }
 
-    // ABS
-    // Returns data in absolute mode and shift programm counter
-    uint8_t abs(uint16_t & pc, uint8_t reg = 0x00)
+    // Read effective address from memory and shift program counter
+    uint16_t addressRead(uint16_t & pc)
     {
-        uint16_t hi = read(pc++);
         uint16_t lo = read(pc++);
+        uint16_t hi = read(pc++);
 
-        return read( ((hi << 8) | lo) + reg );      
+        return (hi << 8) | lo;
+    }
+
+    /*
+        Absolute mode
+
+        OPC $LLHH
+            Operand is address $HHLL
+
+        OPC $LLHH,X
+            Operand is address; 
+            Effective address is address incremented by register with carry
+    */
+    uint8_t abs(uint16_t & pc, uint8_t rg = 0x00)
+    {
+        auto index = addressRead(pc);
+        return read(0xFFFF & (index + rg));      
+    }
+
+    /*
+        Zeropage mode
+
+        OPC $LLHH
+            Operand is zeropage address (hi-byte is zero, address = $00LL)
+
+        OPC $LLHH,X/Y
+            Operand is zeropage address
+            Effective address is address incremented by register without carry
+    */
+    uint8_t zpg(uint16_t & pc, uint8_t rg = 0x00)
+    {
+        auto lo = read(pc++);
+
+        // Zeropage only
+        return read(0x00FF & (lo + rg));
     }
 };
 
@@ -99,6 +132,9 @@ void Cpu::reset ()
     With immediate addressing, the operand is contained in the
     second byte of the instruction; no further memory address-
     ing is required.
+
+    OPC #$BB
+    Operand is byte BB
 */
 
 void Cpu::IMM () 
@@ -161,7 +197,7 @@ void Cpu::ABSY ()
 
 void Cpu::ZPG () 
 {
-
+    op = imp -> zpg(pc);
 }
 
 
@@ -179,8 +215,15 @@ void Cpu::ZPG ()
     crossing of page boundaries does not occur. 
 */
 
-void Cpu::ZPGX () { }
-void Cpu::ZPGY () { }
+void Cpu::ZPGX () 
+{ 
+    op = imp -> zpg(pc, x);
+}
+
+void Cpu::ZPGY () 
+{ 
+    op = imp -> zpg(pc, y);
+}
 
 
 /* 
@@ -191,7 +234,10 @@ void Cpu::ZPGY () { }
     instruction. 
 */
 
-void Cpu::IMP () { }
+void Cpu::IMP () 
+{ 
+    op = 0x00;
+}
 
 
 /* 
@@ -201,7 +247,10 @@ void Cpu::IMP () { }
     instruction and implies an operation on the accumulator. 
 */
 
-void Cpu::ACC () { }
+void Cpu::ACC () 
+{ 
+    op = a;
+}
 
 
 /* 
@@ -217,7 +266,10 @@ void Cpu::ACC () { }
     counter. 
 */
 
-void Cpu::IND () { }
+void Cpu::IND () 
+{
+    // ~
+}
 
 
 /* 
@@ -231,7 +283,14 @@ void Cpu::IND () { }
     order eight bits of the effective address. 
 */
 
-void Cpu::INDX () { }
+void Cpu::INDX () 
+{ 
+    // OPC ($LL,X)	
+    // Operand is zeropage address; 
+    // Effective address is word in (LL + X, LL + X + 1), inc. without carry: C.w($00LL + X)
+
+    
+}
 
 
 /* 
