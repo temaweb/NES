@@ -30,24 +30,15 @@ private:
 
     enum Flags : uint8_t
     {
-        Carry     = 1,      
-        Zero      = 1 << 1,
-        Interrupt = 1 << 2,
-        Decimal   = 1 << 3,
-        Break     = 1 << 4,
-        Default   = 1 << 5,
-        Overflow  = 1 << 6,
-        Negative  = 1 << 7
+        Carry     = 1,      // P0 - (C)  - Carry flag  
+        Zero      = 1 << 1, // P1 - (Z)  - Zero
+        Interrupt = 1 << 2, // P2 - (I)  - Interrupt (IRQ disable)
+        Decimal   = 1 << 3, // P3 - (D)  - Decimal (use BCD for arithmetics)
+        Break     = 1 << 4, // P4 - (B)  - Break
+        Default   = 1 << 5, // P5 - (1)  - Ignored (always 1)
+        Overflow  = 1 << 6, // P6 - (V)  - Overflow
+        Negative  = 1 << 7  // P7 - (N)  - Negative
     };
-
-    // HI  P7 - (N)  - Negative
-    //     P6 - (V)  - Overflow
-    //     P5 - (1)  - Ignored
-    //     P4 - (B)  - Break
-    //     P3 - (D)  - Decimal (use BCD for arithmetics)
-    //     P2 - (I)  - Interrupt (IRQ disable)
-    //     P1 - (Z)  - Zero
-    // LO  P0 - (C)  - Carry flag
 
     uint8_t status = Status::Default;
 

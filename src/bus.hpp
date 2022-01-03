@@ -20,7 +20,6 @@
 
 #include <array>
 #include <cstdint>
-#include "device.hpp"
 
 class Bus
 {

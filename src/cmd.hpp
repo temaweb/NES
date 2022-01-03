@@ -15,39 +15,25 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DEVICE_HPP
-#define DEVICE_HPP
+#ifndef CMD_HPP
+#define CMD_HPP
 
-#include <cstdint>
-#include <tuple>
+class Cpu;
 
-class Device
+struct Cmd
 {
-public:
-    virtual ~Device() = default;
+    uint8_t (Cpu::*cmd)  (void);
+    void    (Cpu::*mode) (void);
 
-    // Device should be process data in the space
-    virtual std::tuple<uint16_t, uint16_t> getSpace() = 0;
-};
+    uint8_t execute(Cpu * cpu)
+    {
+        // Switch address mode
+        (cpu->*mode)();
 
-// Read-only devices
-class RDevice : virtual public Device
-{
-public:
-    virtual uint8_t read(uint16_t address) const = 0;
-};
-
-// Write-only devices
-class WDevice : virtual public Device
-{
-public:
-    virtual void write(uint16_t address, uint8_t data) = 0;
-};
-
-// R/W device
-class IODevice : public RDevice, public WDevice
-{
-
+        // Execute command and return programm cycles
+        // with addition cycles depends on memory mode
+        return (cpu->*cmd)();
+    }
 };
 
 #endif

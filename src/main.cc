@@ -42,38 +42,31 @@ void loop()
 
 int main()
 {
-    Status s;
+    SDL_Init(SDL_INIT_VIDEO);
 
-    uint8_t x = 1;
-    uint8_t d = s;
+    auto window = SDL_CreateWindow ("Emulator", 
 
-    std::cout << std::bitset<8>(d) << std::endl;
+        // the x position of the window
+        SDL_WINDOWPOS_UNDEFINED, 
 
-    // SDL_Init(SDL_INIT_VIDEO);
+        // the y position of the window
+        SDL_WINDOWPOS_UNDEFINED, 
 
-    // auto window = SDL_CreateWindow ("Emulator", 
+        800,  // the width of the window, in screen coordinates
+        600,  // the height of the window, in screen coordinates
+        0     // 0, or one or more SDL_WindowFlags OR'd together
+    );
 
-    //     // the x position of the window
-    //     SDL_WINDOWPOS_UNDEFINED, 
+    auto renderer = SDL_CreateRenderer (window, -1, SDL_RENDERER_ACCELERATED);
 
-    //     // the y position of the window
-    //     SDL_WINDOWPOS_UNDEFINED, 
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+    SDL_RenderClear(renderer);
+    SDL_RenderPresent(renderer);
 
-    //     800,  // the width of the window, in screen coordinates
-    //     600,  // the height of the window, in screen coordinates
-    //     0     // 0, or one or more SDL_WindowFlags OR'd together
-    // );
+    loop();
 
-    // auto renderer = SDL_CreateRenderer (window, -1, SDL_RENDERER_ACCELERATED);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 
-    // SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-    // SDL_RenderClear(renderer);
-    // SDL_RenderPresent(renderer);
-
-    // loop();
-
-    // SDL_DestroyWindow(window);
-    // SDL_Quit();
-
-    // return 0;
+    return 0;
 }

@@ -16,6 +16,7 @@ add_executable(emulator)
 # Add emulator sources
 target_sources(emulator PRIVATE 
     "src/main.cc" 
+    "src/map.cc"
     "src/bus.cc"
     "src/cpu.cc"
 )

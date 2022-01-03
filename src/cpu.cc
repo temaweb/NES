@@ -17,331 +17,69 @@
 
 #include "cpu.hpp"
 #include "bus.hpp"
+#include "map.hpp"
 
-Cpu::Cpu(Bus * bus) : bus(bus)
+class Cpu::Imp
 {
-    #pragma region instructions
+private:
 
-    cmd =
-    {{
-        // 0x00 - 0x0F
+    // Bus communication interface
+    // Interact with each other devices i.e. RAM, APU, PPU etc.
+    std::shared_ptr<Bus> bus;
 
-        { &Cpu::BRK, &Cpu::IMP  }, // 0x00
-        { &Cpu::ORA, &Cpu::INDX }, // 0x01
-        { &Cpu::JAM, &Cpu::IMP  }, // 0x02 *
-        { &Cpu::SLO, &Cpu::INDX }, // 0x03 *
-        { &Cpu::NOP, &Cpu::ZPG  }, // 0x04 *
-        { &Cpu::ORA, &Cpu::ZPG  }, // 0x05
-        { &Cpu::ASL, &Cpu::ZPG  }, // 0x06
-        { &Cpu::SLO, &Cpu::ZPG  }, // 0x07 *
-        { &Cpu::PHP, &Cpu::IMP  }, // 0x08
-        { &Cpu::ORA, &Cpu::IMM  }, // 0x09
-        { &Cpu::ASL, &Cpu::ACC  }, // 0x0A
-        { &Cpu::ANC, &Cpu::IMM  }, // 0x0B *
-        { &Cpu::NOP, &Cpu::ABS  }, // 0x0C *
-        { &Cpu::ORA, &Cpu::ABS  }, // 0x0D
-        { &Cpu::ASL, &Cpu::ABS  }, // 0x0E
-        { &Cpu::SLO, &Cpu::ABS  }, // 0x0F *
 
-        // 0x10 - 0x1F
+public:
 
-        { &Cpu::BPL, &Cpu::REL  }, // 0x10
-        { &Cpu::ORA, &Cpu::INDY }, // 0x11
-        { &Cpu::JAM, &Cpu::IMP  }, // 0x12 *
-        { &Cpu::SLO, &Cpu::INDY }, // 0x13 *
-        { &Cpu::NOP, &Cpu::ZPGX }, // 0x14 *
-        { &Cpu::ORA, &Cpu::ZPGX }, // 0x15
-        { &Cpu::ASL, &Cpu::ZPGX }, // 0x16
-        { &Cpu::SLO, &Cpu::ZPGX }, // 0x17 *
-        { &Cpu::CLC, &Cpu::IMP  }, // 0x18
-        { &Cpu::ORA, &Cpu::ABSY }, // 0x19
-        { &Cpu::NOP, &Cpu::IMP  }, // 0x1A *
-        { &Cpu::SLO, &Cpu::ABSY }, // 0x1B *
-        { &Cpu::NOP, &Cpu::ABSX }, // 0x1C *
-        { &Cpu::ORA, &Cpu::ABSX }, // 0x1D
-        { &Cpu::ASL, &Cpu::ABSX }, // 0x1E
-        { &Cpu::SLO, &Cpu::ABSX }, // 0x1F *
+    Imp(std::shared_ptr<Bus> bus) : bus(bus)
+    { }
 
-        // 0x20 - 0x2F
+    // Read data from bus
+    uint8_t read(uint16_t index)
+    {
+        return bus -> read(index);
+    }
 
-        { &Cpu::JSR, &Cpu::ABS  }, // 0X20
-        { &Cpu::AND, &Cpu::INDX }, // 0X21
-        { &Cpu::JAM, &Cpu::IMP  }, // 0X22 *
-        { &Cpu::RLA, &Cpu::INDX }, // 0X23 *
-        { &Cpu::BIT, &Cpu::ZPG  }, // 0X24
-        { &Cpu::AND, &Cpu::ZPG  }, // 0X25
-        { &Cpu::ROL, &Cpu::ZPG  }, // 0X26
-        { &Cpu::RLA, &Cpu::ZPG  }, // 0X27 *
-        { &Cpu::PLP, &Cpu::IMP  }, // 0X28
-        { &Cpu::AND, &Cpu::IMM  }, // 0X29
-        { &Cpu::ROL, &Cpu::ACC  }, // 0X2A
-        { &Cpu::ANC, &Cpu::IMM  }, // 0X2B *
-        { &Cpu::BIT, &Cpu::ABS  }, // 0X2C
-        { &Cpu::AND, &Cpu::ABS  }, // 0X2D
-        { &Cpu::ROL, &Cpu::ABS  }, // 0X2E
-        { &Cpu::RLA, &Cpu::ABS  }, // 0X2F *
+    // ABS
+    // Returns data in absolute mode and shift programm counter
+    uint8_t abs(uint16_t & pc, uint8_t reg = 0x00)
+    {
+        uint16_t hi = read(pc++);
+        uint16_t lo = read(pc++);
 
-        // 0x30 - 0x3F
+        return read( ((hi << 8) | lo) + reg );      
+    }
+};
 
-        { &Cpu::BMI, &Cpu::REL  }, // 0x30
-        { &Cpu::AND, &Cpu::INDY }, // 0x31
-        { &Cpu::JAM, &Cpu::IMP  }, // 0x32 *
-        { &Cpu::RLA, &Cpu::INDY }, // 0x33 *
-        { &Cpu::NOP, &Cpu::ZPGX }, // 0x34 *
-        { &Cpu::AND, &Cpu::ZPGX }, // 0x35
-        { &Cpu::ROL, &Cpu::ZPGX }, // 0x36
-        { &Cpu::RLA, &Cpu::ZPGX }, // 0x37 *
-        { &Cpu::SEC, &Cpu::IMP  }, // 0x38
-        { &Cpu::AND, &Cpu::ABSY }, // 0x39
-        { &Cpu::NOP, &Cpu::IMP  }, // 0x3A *
-        { &Cpu::RLA, &Cpu::ABSY }, // 0x3B *
-        { &Cpu::NOP, &Cpu::ABSX }, // 0x3C *
-        { &Cpu::AND, &Cpu::ABSX }, // 0x3D
-        { &Cpu::ROL, &Cpu::ABSX }, // 0x3E
-        { &Cpu::RLA, &Cpu::ABSX }, // 0x3F *
 
-        // 0x40 - 0x4F
+/*
+    Default constructor
+*/
 
-        { &Cpu::RTI, &Cpu::IMP  }, // 0x40
-        { &Cpu::EOR, &Cpu::INDX }, // 0x41
-        { &Cpu::JAM, &Cpu::IMP  }, // 0x42 *
-        { &Cpu::SRE, &Cpu::INDX }, // 0x43 *
-        { &Cpu::NOP, &Cpu::ZPG  }, // 0x44 *
-        { &Cpu::EOR, &Cpu::ZPG  }, // 0x45
-        { &Cpu::LSR, &Cpu::ZPG  }, // 0x46
-        { &Cpu::SRE, &Cpu::ZPG  }, // 0x47 *
-        { &Cpu::PHA, &Cpu::IMP  }, // 0x48
-        { &Cpu::EOR, &Cpu::IMM  }, // 0x49
-        { &Cpu::LSR, &Cpu::ACC  }, // 0x4A
-        { &Cpu::ALR, &Cpu::IMM  }, // 0x4B *
-        { &Cpu::JMP, &Cpu::ABS  }, // 0x4C
-        { &Cpu::EOR, &Cpu::ABS  }, // 0x4D
-        { &Cpu::LSR, &Cpu::ABS  }, // 0x4E
-        { &Cpu::SRE, &Cpu::ABS  }, // 0x4F *
-
-        // 0x50 - 0x5F
-
-        { &Cpu::BVC, &Cpu::REL  }, // 0x50
-        { &Cpu::EOR, &Cpu::INDY }, // 0x51
-        { &Cpu::JAM, &Cpu::IMP  }, // 0x52 *
-        { &Cpu::SRE, &Cpu::INDY }, // 0x53 *
-        { &Cpu::NOP, &Cpu::ZPGX }, // 0x54 *
-        { &Cpu::EOR, &Cpu::ZPGX }, // 0x55
-        { &Cpu::LSR, &Cpu::ZPGX }, // 0x56
-        { &Cpu::SRE, &Cpu::ZPGX }, // 0x57 *
-        { &Cpu::CLI, &Cpu::IMP  }, // 0x58
-        { &Cpu::EOR, &Cpu::ABSY }, // 0x59
-        { &Cpu::NOP, &Cpu::IMP  }, // 0x5A *
-        { &Cpu::SRE, &Cpu::ABSY }, // 0x5B *
-        { &Cpu::NOP, &Cpu::ABSX }, // 0x5C *
-        { &Cpu::EOR, &Cpu::ABSX }, // 0x5D
-        { &Cpu::LSR, &Cpu::ABSX }, // 0x5E
-        { &Cpu::SRE, &Cpu::ABSX }, // 0x5F *
-
-        // 0x60 - 0x6F
-
-        { &Cpu::RTS, &Cpu::IMP  }, // 0x60
-        { &Cpu::ADC, &Cpu::INDX }, // 0x61
-        { &Cpu::JAM, &Cpu::IMP  }, // 0x62 *
-        { &Cpu::RRA, &Cpu::INDX }, // 0x63 *
-        { &Cpu::NOP, &Cpu::ZPG  }, // 0x64 *
-        { &Cpu::ADC, &Cpu::ZPG  }, // 0x65
-        { &Cpu::ROR, &Cpu::ZPG  }, // 0x66
-        { &Cpu::RRA, &Cpu::ZPG  }, // 0x67 *
-        { &Cpu::PLA, &Cpu::IMP  }, // 0x68
-        { &Cpu::ADC, &Cpu::IMM  }, // 0x69
-        { &Cpu::ROR, &Cpu::ACC  }, // 0x6A
-        { &Cpu::ARR, &Cpu::IMM  }, // 0x6B *
-        { &Cpu::JMP, &Cpu::IND  }, // 0x6C
-        { &Cpu::ADC, &Cpu::ABS  }, // 0x6D
-        { &Cpu::ROR, &Cpu::ABS  }, // 0x6E
-        { &Cpu::RRA, &Cpu::ABS  }, // 0x6F *
-
-        // 0x70 - 0x7F
-
-        { &Cpu::BVS, &Cpu::REL  }, // 0x70
-        { &Cpu::ADC, &Cpu::INDY }, // 0x71
-        { &Cpu::JAM, &Cpu::IMP  }, // 0x72 *
-        { &Cpu::RRA, &Cpu::INDY }, // 0x73 *
-        { &Cpu::NOP, &Cpu::ZPGX }, // 0x74 *
-        { &Cpu::ADC, &Cpu::ZPGX }, // 0x75
-        { &Cpu::ROR, &Cpu::ZPGX }, // 0x76
-        { &Cpu::RRA, &Cpu::ZPGX }, // 0x77 *
-        { &Cpu::SEI, &Cpu::IMP  }, // 0x78
-        { &Cpu::ADC, &Cpu::ABSY }, // 0x79
-        { &Cpu::NOP, &Cpu::IMP  }, // 0x7A *
-        { &Cpu::RRA, &Cpu::ABSY }, // 0x7B *
-        { &Cpu::NOP, &Cpu::ABSX }, // 0x7C *
-        { &Cpu::ADC, &Cpu::ABSX }, // 0x7D
-        { &Cpu::ROR, &Cpu::ABSX }, // 0x7E
-        { &Cpu::RRA, &Cpu::ABSX }, // 0x7F *
-
-        // 0x80 - 0x8F
-
-        { &Cpu::NOP, &Cpu::IMM  }, // 0x80 *
-        { &Cpu::STA, &Cpu::INDX }, // 0x81
-        { &Cpu::NOP, &Cpu::IMM  }, // 0x82 *
-        { &Cpu::SAX, &Cpu::INDX }, // 0x83 *
-        { &Cpu::STY, &Cpu::ZPG  }, // 0x84
-        { &Cpu::STA, &Cpu::ZPG  }, // 0x85
-        { &Cpu::STX, &Cpu::ZPG  }, // 0x86
-        { &Cpu::SAX, &Cpu::ZPG  }, // 0x87 *
-        { &Cpu::DEY, &Cpu::IMP  }, // 0x88
-        { &Cpu::NOP, &Cpu::IMM  }, // 0x89 *
-        { &Cpu::TXA, &Cpu::IMP  }, // 0x8A
-        { &Cpu::ANE, &Cpu::IMM  }, // 0x8B *
-        { &Cpu::STY, &Cpu::ABS  }, // 0x8C
-        { &Cpu::STA, &Cpu::ABS  }, // 0x8D
-        { &Cpu::STX, &Cpu::ABS  }, // 0x8E
-        { &Cpu::SAX, &Cpu::ABS  }, // 0x8F *
-
-        // 0x90 - 0x9F
-
-        { &Cpu::BCC, &Cpu::REL  }, // 0x90
-        { &Cpu::STA, &Cpu::INDY }, // 0x91
-        { &Cpu::JAM, &Cpu::IMP  }, // 0x92 *
-        { &Cpu::SHA, &Cpu::INDY }, // 0x93 *
-        { &Cpu::STY, &Cpu::ZPGX }, // 0x94
-        { &Cpu::STA, &Cpu::ZPGX }, // 0x95
-        { &Cpu::STX, &Cpu::ZPGY }, // 0x96
-        { &Cpu::SAX, &Cpu::ZPGY }, // 0x97 *
-        { &Cpu::TYA, &Cpu::IMP  }, // 0x98
-        { &Cpu::STA, &Cpu::ABSY }, // 0x99
-        { &Cpu::TXS, &Cpu::IMP  }, // 0x9A
-        { &Cpu::TAS, &Cpu::ABSY }, // 0x9B *
-        { &Cpu::SHY, &Cpu::ABSX }, // 0x9C *
-        { &Cpu::STA, &Cpu::ABSX }, // 0x9D
-        { &Cpu::SHX, &Cpu::ABSY }, // 0x9E *
-        { &Cpu::SHA, &Cpu::ABSY }, // 0x9F *
-
-        // 0xA0 - 0xAF
-
-        { &Cpu::LDY, &Cpu::IMM  }, // 0xA0
-        { &Cpu::LDA, &Cpu::INDX }, // 0xA1
-        { &Cpu::LDX, &Cpu::IMM  }, // 0xA2
-        { &Cpu::LAX, &Cpu::INDX }, // 0xA3 *
-        { &Cpu::LDY, &Cpu::ZPG  }, // 0xA4
-        { &Cpu::LDA, &Cpu::ZPG  }, // 0xA5
-        { &Cpu::LDX, &Cpu::ZPG  }, // 0xA6
-        { &Cpu::LAX, &Cpu::ZPG  }, // 0xA7 *
-        { &Cpu::TAY, &Cpu::IMP  }, // 0xA8
-        { &Cpu::LDA, &Cpu::IMM  }, // 0xA9
-        { &Cpu::TAX, &Cpu::IMP  }, // 0xAA
-        { &Cpu::LXA, &Cpu::IMM  }, // 0xAB *
-        { &Cpu::LDY, &Cpu::ABS  }, // 0xAC
-        { &Cpu::LDA, &Cpu::ABS  }, // 0xAD
-        { &Cpu::LDX, &Cpu::ABS  }, // 0xAE
-        { &Cpu::LAX, &Cpu::ABS  }, // 0xAF *
-
-        // 0xB0 - 0xBF
-
-        { &Cpu::BCS, &Cpu::REL  }, // 0xB0
-        { &Cpu::LDA, &Cpu::INDY }, // 0xB1
-        { &Cpu::JAM, &Cpu::IMP  }, // 0xB2 *
-        { &Cpu::LAX, &Cpu::INDY }, // 0xB3 *
-        { &Cpu::LDY, &Cpu::ZPGX }, // 0xB4
-        { &Cpu::LDA, &Cpu::ZPGX }, // 0xB5
-        { &Cpu::LDX, &Cpu::ZPGY }, // 0xB6
-        { &Cpu::LAX, &Cpu::ZPGY }, // 0xB7 *
-        { &Cpu::CLV, &Cpu::IMP  }, // 0xB8
-        { &Cpu::LDA, &Cpu::ABSY }, // 0xB9
-        { &Cpu::TSX, &Cpu::IMP  }, // 0xBA
-        { &Cpu::LAS, &Cpu::ABSY }, // 0xBB *
-        { &Cpu::LDY, &Cpu::ABSX }, // 0xBC
-        { &Cpu::LDA, &Cpu::ABSX }, // 0xBD
-        { &Cpu::LDX, &Cpu::ABSY }, // 0xBE
-        { &Cpu::LAX, &Cpu::ABSY }, // 0xBF *
-
-        // 0xC0 - 0xCF
-
-        { &Cpu::CPY, &Cpu::IMM  }, // 0xC0
-        { &Cpu::CMP, &Cpu::INDX }, // 0xC1
-        { &Cpu::NOP, &Cpu::IMM  }, // 0xC2 *
-        { &Cpu::DCP, &Cpu::INDX }, // 0xC3 *
-        { &Cpu::CPY, &Cpu::ZPG  }, // 0xC4
-        { &Cpu::CMP, &Cpu::ZPG  }, // 0xC5
-        { &Cpu::DEC, &Cpu::ZPG  }, // 0xC6
-        { &Cpu::DCP, &Cpu::ZPG  }, // 0xC7 *
-        { &Cpu::INY, &Cpu::IMP  }, // 0xC8
-        { &Cpu::CMP, &Cpu::IMM  }, // 0xC9
-        { &Cpu::DEX, &Cpu::IMP  }, // 0xCA
-        { &Cpu::SBX, &Cpu::IMM  }, // 0xCB *
-        { &Cpu::CPY, &Cpu::ABS  }, // 0xCC
-        { &Cpu::CMP, &Cpu::ABS  }, // 0xCD
-        { &Cpu::DEC, &Cpu::ABS  }, // 0xCE
-        { &Cpu::DCP, &Cpu::ABS  }, // 0xCF *
-
-        // 0xD0 - 0xDF
-
-        { &Cpu::BNE, &Cpu::REL  }, // 0xD0
-        { &Cpu::CMP, &Cpu::INDY }, // 0xD1
-        { &Cpu::JAM, &Cpu::IMP  }, // 0xD2 *
-        { &Cpu::DCP, &Cpu::INDY }, // 0xD3 *
-        { &Cpu::NOP, &Cpu::ZPGX }, // 0xD4 *
-        { &Cpu::CMP, &Cpu::ZPGX }, // 0xD5
-        { &Cpu::DEC, &Cpu::ZPGX }, // 0xD6
-        { &Cpu::DCP, &Cpu::ZPGX }, // 0xD7 *
-        { &Cpu::CLD, &Cpu::IMP  }, // 0xD8
-        { &Cpu::CMP, &Cpu::ABSY }, // 0xD9
-        { &Cpu::NOP, &Cpu::IMP  }, // 0xDA *
-        { &Cpu::DCP, &Cpu::ABSY }, // 0xDB *
-        { &Cpu::NOP, &Cpu::ABSX }, // 0xDC *
-        { &Cpu::CMP, &Cpu::ABSX }, // 0xDD
-        { &Cpu::DEC, &Cpu::ABSX }, // 0xDE
-        { &Cpu::DCP, &Cpu::ABSX }, // 0xDF *
-
-        // 0xE0 - 0xEF
-
-        { &Cpu::CPX,  &Cpu::IMM  }, // 0xE0
-        { &Cpu::SBC,  &Cpu::INDX }, // 0xE1
-        { &Cpu::NOP,  &Cpu::IMM  }, // 0xE2 *
-        { &Cpu::ISC,  &Cpu::INDX }, // 0xE3 *
-        { &Cpu::CPX,  &Cpu::ZPG  }, // 0xE4
-        { &Cpu::SBC,  &Cpu::ZPG  }, // 0xE5
-        { &Cpu::INC,  &Cpu::ZPG  }, // 0xE6
-        { &Cpu::ISC,  &Cpu::ZPG  }, // 0xE7 *
-        { &Cpu::INX,  &Cpu::IMP  }, // 0xE8
-        { &Cpu::SBC,  &Cpu::IMM  }, // 0xE9
-        { &Cpu::NOP,  &Cpu::IMP  }, // 0xEA
-        { &Cpu::USBC, &Cpu::IMM  }, // 0xEB *
-        { &Cpu::CPX,  &Cpu::ABS  }, // 0xEC
-        { &Cpu::SBC,  &Cpu::ABS  }, // 0xED
-        { &Cpu::INC,  &Cpu::ABS  }, // 0xEE
-        { &Cpu::ISC,  &Cpu::ABS  }, // 0xEF *
-
-        // 0xF0 - 0xFF
-
-        { &Cpu::BEQ, &Cpu::REL  }, // 0xF0
-        { &Cpu::SBC, &Cpu::INDY }, // 0xF1
-        { &Cpu::JAM, &Cpu::IMP  }, // 0xF2 *
-        { &Cpu::ISC, &Cpu::INDY }, // 0xF3 *
-        { &Cpu::NOP, &Cpu::ZPGX }, // 0xF4 *
-        { &Cpu::SBC, &Cpu::ZPGX }, // 0xF5
-        { &Cpu::INC, &Cpu::ZPGX }, // 0xF6
-        { &Cpu::ISC, &Cpu::ZPGX }, // 0xF7 *
-        { &Cpu::SED, &Cpu::IMP  }, // 0xF8
-        { &Cpu::SBC, &Cpu::ABSY }, // 0xF9
-        { &Cpu::NOP, &Cpu::IMP  }, // 0xFA *
-        { &Cpu::ISC, &Cpu::ABSY }, // 0xFB *
-        { &Cpu::NOP, &Cpu::ABSX }, // 0xFC *
-        { &Cpu::SBC, &Cpu::ABSX }, // 0xFD
-        { &Cpu::INC, &Cpu::ABSX }, // 0xFE
-        { &Cpu::ISC, &Cpu::ABSX }  // 0xFF *
-    }};
-
-    #pragma endregion instruction
+Cpu::Cpu(std::shared_ptr<Bus> bus)
+{
+    map = std::make_unique<Map>();
+    imp = std::make_unique<Imp>(bus);
 }
+
+
+/*
+    Read operation code and execute command
+    Returns total programm cycles per operation
+*/
 
 int Cpu::clock ()
 {
-    auto code = bus -> read(pc);  
-    auto oper = cmd.at(code); 
-
-    pc++;
+    auto code = imp -> read(pc++);  
+    auto oper = map -> getCommand(code);
 
     // Execute command and returns programm cycles
     return oper.execute(this);
 }
+
+
+/*
+    Reset CPU and clear all registers & flags
+*/
 
 void Cpu::reset ()
 {
@@ -354,28 +92,177 @@ void Cpu::reset ()
     pc = 0x0000;
 }
 
-//
-// Operand is byte BB
-// Example: OPC #$BB
-//
 
-uint8_t Cpu::IMM () 
+/*
+    Immediate Addressing (Immediate)
+
+    With immediate addressing, the operand is contained in the
+    second byte of the instruction; no further memory address-
+    ing is required.
+*/
+
+void Cpu::IMM () 
 { 
-    return 0x00; 
+    op = imp -> read(pc++);
 }
 
-uint8_t Cpu::ABS  () { return 0x00; }
-uint8_t Cpu::ABSX () { return 0x00; }
-uint8_t Cpu::ABSY () { return 0x00; }
-uint8_t Cpu::ZPG  () { return 0x00; }
-uint8_t Cpu::ZPGX () { return 0x00; }
-uint8_t Cpu::ZPGY () { return 0x00; }
-uint8_t Cpu::IMP  () { return 0x00; }
-uint8_t Cpu::ACC  () { return 0x00; }
-uint8_t Cpu::IND  () { return 0x00; }
-uint8_t Cpu::INDX () { return 0x00; }
-uint8_t Cpu::INDY () { return 0x00; }
-uint8_t Cpu::REL  () { return 0x00; }
+
+/*
+    Absolute Addressing (Absolute)
+
+    For absolute addressing, the second byte of the instruction
+    specifies the eight low-order bits of the effective address,
+    while the third byte specifies the eight high-order bits.
+    Therefore, this addressing mode allows access to the total
+    64K bytes of addressable memory.
+*/
+
+void Cpu::ABS () 
+{
+    op = imp -> abs(pc);
+}
+
+
+/*     
+    Absolute Indexed Addressing (ABS, X or ABS, Y)
+
+    Absolute indexed addressing is used in conjunction with X
+    or Y index register and is referred to as "Absolute, X" and
+    “Absolute, Y" The effective address is formed by adding the
+    contents of X or Y to the address contained in the second
+    and third bytes of the instruction. This mode allows the
+    index register to contain the index or count value and the
+    instruction to contain the base address. This type of index-
+    ing allows any location referencing and the index to modify
+    multiple fields, resulting in reduced coding and execution
+    time. 
+*/
+
+void Cpu::ABSX () 
+{ 
+    op = imp -> abs(pc, x);
+}
+
+void Cpu::ABSY () 
+{ 
+    op = imp -> abs(pc, y);
+}
+
+
+/* 
+    Zero Page Addressing (Zero Page)
+
+    Zero page addressing allows shorter code and execution
+    times by only fetching the second byte of the instruction
+    and assuming a zero high address byte. The careful use of
+    zero page addressing can result in significant increase in
+    code efficiency. 
+*/
+
+void Cpu::ZPG () 
+{
+
+}
+
+
+/* 
+    Zero Page Indexed Addressing (ZPG, X or ZPG, Y)
+
+    Zero page absolute addressing is used in conjunction with
+    the index register and is referred to as "Zero Page, X" or
+    "Zero Page, Y" The effective address is calculated by adding
+    the second byte to the contents of the index register. Since
+    this is a form of "Zero Page" addressing, the content of the
+    second byte references a location in page zero. Additionally,
+    due to the "Zero Page" addressing nature of this mode, no
+    carry is added to the high-order eight bits of memory, and
+    crossing of page boundaries does not occur. 
+*/
+
+void Cpu::ZPGX () { }
+void Cpu::ZPGY () { }
+
+
+/* 
+    Implied Addressing (Implied)
+
+    In the implied addressing mode, the address containing the
+    operand is implicitly stated in the operation code of the
+    instruction. 
+*/
+
+void Cpu::IMP () { }
+
+
+/* 
+    Accumulator Addressing (Accum)
+
+    This form of addressing is represented with a one byte
+    instruction and implies an operation on the accumulator. 
+*/
+
+void Cpu::ACC () { }
+
+
+/* 
+    Absolute Indirect Addressing (Jump Instruction Only)
+
+    The second byte of the instruction contains the low-order
+    eight bits of a memory location. The high-order eight bits of
+    that memory location is contained in the third byte of the
+    instruction. The contents of the fully specified memory loca-
+    tion is the low-order byte of the effective address. The next
+    memory location contains the high-order byte of the effec-
+    tive address which is loaded into the 16 bit program
+    counter. 
+*/
+
+void Cpu::IND () { }
+
+
+/* 
+    Absolute Indexed Indirect Addressing (Jump Instruction Only)
+
+    With absolute indexed indirect addressing the contents of
+    the second and third instruction bytes are added to the X
+    register. The result of this addition, points to a memory loca-
+    tion containing the lower-order eight bits of the effective
+    address. The next memory location contains the higher-
+    order eight bits of the effective address. 
+*/
+
+void Cpu::INDX () { }
+
+
+/* 
+    Indirect Indexed Addressing [(IND), Y]
+
+    This form of addressing is usually referred to as Indirect, Y.
+    The second byte of the instruction points to a memory loca-
+    tion in page zero. The contents of this memory location are
+    added to the contents of the Y index register, the result
+    being the low-order eight bits of the effective address. The
+    carry from this addition is added to the contents of the next
+    page zero memory location, the result being the high-order
+    eight bits of the effective address. 
+*/
+
+void Cpu::INDY () { }
+
+
+/* 
+    Relative Addressing (Relative)
+
+    Relative addressing is used only with branch instructions; it
+    establishes a destination for the conditional branch. The
+    second byte of the instruction becomes the operand which
+    is an “Offset” added to the contents of the Jower eight bits
+    of the program counter when the counter is set at the next
+    instruction. The range of the offset is -128 to +127 bytes
+    from the next instruction. 
+*/
+
+void Cpu::REL () { }
 
 
 /*
@@ -400,8 +287,14 @@ uint8_t Cpu::REL  () { return 0x00; }
 
 uint8_t Cpu::ADC() 
 { 
+    if (p.isDecimal())
+    {
+        // BCD mode
+    }
+
     return 0x00; 
 }
+
 
 /*
     ALR (ASR)
@@ -420,6 +313,7 @@ uint8_t Cpu::ALR()
 {
     return 0x00; 
 }
+
 
 /*
     ANC
@@ -467,7 +361,6 @@ uint8_t Cpu::AND()
 uint8_t Cpu::ANE() { return 0x00; }
 uint8_t Cpu::ARR() { return 0x00; }
 uint8_t Cpu::ASL() { return 0x00; }
-
 uint8_t Cpu::BCC() { return 0x00; }
 uint8_t Cpu::BCS() { return 0x00; }
 uint8_t Cpu::BEQ() { return 0x00; }
@@ -478,7 +371,6 @@ uint8_t Cpu::BPL() { return 0x00; }
 uint8_t Cpu::BRK() { return 0x00; }
 uint8_t Cpu::BVC() { return 0x00; }
 uint8_t Cpu::BVS() { return 0x00; }
-
 uint8_t Cpu::CLC() { return 0x00; }
 uint8_t Cpu::CLD() { return 0x00; }
 uint8_t Cpu::CLI() { return 0x00; }
@@ -486,23 +378,18 @@ uint8_t Cpu::CLV() { return 0x00; }
 uint8_t Cpu::CMP() { return 0x00; }
 uint8_t Cpu::CPX() { return 0x00; }
 uint8_t Cpu::CPY() { return 0x00; }
-
 uint8_t Cpu::DCP() { return 0x00; }
 uint8_t Cpu::DEC() { return 0x00; }
 uint8_t Cpu::DEX() { return 0x00; }
 uint8_t Cpu::DEY() { return 0x00; }
-
 uint8_t Cpu::EOR() { return 0x00; }
-
 uint8_t Cpu::INC() { return 0x00; }
 uint8_t Cpu::INX() { return 0x00; }
 uint8_t Cpu::INY() { return 0x00; }
 uint8_t Cpu::ISC() { return 0x00; }
-
 uint8_t Cpu::JAM() { return 0x00; }
 uint8_t Cpu::JMP() { return 0x00; }
 uint8_t Cpu::JSR() { return 0x00; }
-
 uint8_t Cpu::LAS() { return 0x00; }
 uint8_t Cpu::LAX() { return 0x00; }
 uint8_t Cpu::LDA() { return 0x00; }
@@ -510,23 +397,18 @@ uint8_t Cpu::LDX() { return 0x00; }
 uint8_t Cpu::LDY() { return 0x00; }
 uint8_t Cpu::LSR() { return 0x00; }
 uint8_t Cpu::LXA() { return 0x00; }
-
 uint8_t Cpu::NOP() { return 0x00; }
-
 uint8_t Cpu::ORA() { return 0x00; }
-
 uint8_t Cpu::PHA() { return 0x00; }
 uint8_t Cpu::PHP() { return 0x00; }
 uint8_t Cpu::PLA() { return 0x00; }
 uint8_t Cpu::PLP() { return 0x00; }
-
 uint8_t Cpu::RLA() { return 0x00; }
 uint8_t Cpu::ROL() { return 0x00; }
 uint8_t Cpu::ROR() { return 0x00; }
 uint8_t Cpu::RRA() { return 0x00; }
 uint8_t Cpu::RTI() { return 0x00; }
 uint8_t Cpu::RTS() { return 0x00; }
-
 uint8_t Cpu::SAX() { return 0x00; }
 uint8_t Cpu::SBC() { return 0x00; }
 uint8_t Cpu::SBX() { return 0x00; }
@@ -541,7 +423,6 @@ uint8_t Cpu::SRE() { return 0x00; }
 uint8_t Cpu::STA() { return 0x00; }
 uint8_t Cpu::STX() { return 0x00; }
 uint8_t Cpu::STY() { return 0x00; }
-
 uint8_t Cpu::TAS() { return 0x00; }
 uint8_t Cpu::TAX() { return 0x00; }
 uint8_t Cpu::TAY() { return 0x00; }
@@ -549,5 +430,4 @@ uint8_t Cpu::TSX() { return 0x00; }
 uint8_t Cpu::TXA() { return 0x00; }
 uint8_t Cpu::TXS() { return 0x00; }
 uint8_t Cpu::TYA() { return 0x00; }
-
 uint8_t Cpu::USBC() { return 0x00; }
