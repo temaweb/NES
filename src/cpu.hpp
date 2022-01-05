@@ -111,7 +111,7 @@ private:
     //      This variable is set depending on current addressing mode
     //
 
-    uint8_t op = 0x00;
+    uint16_t op = 0x0000;
 
 
     //
@@ -168,6 +168,8 @@ private:
     //
 
     uint8_t ADC(); // Add Memory to Accumulator with Carry
+    uint8_t ADC(uint8_t arg);
+    
     uint8_t ALR(); // AND opration and LSR
     uint8_t ANC(); // AND opration and set C as ASL
     uint8_t AND(); // AND Memory with Accumulator

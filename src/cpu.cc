@@ -32,15 +32,23 @@ public:
 
     Imp(std::shared_ptr<Bus> bus) : bus(bus)
     { }
+    
 
-    // Read data from bus
+    /*
+        Read byte from bus
+    */
     uint8_t read(uint16_t index)
     {
         return bus -> read(index);
     }
 
-    // Read effective address from memory and shift program counter
-    uint16_t addressRead(uint16_t & pc)
+
+    /* 
+        Read 2-bytes address from memory direct 
+        Shift program counter twice
+    */
+
+    uint16_t direct(uint16_t & pc)
     {
         uint16_t lo = read(pc++);
         uint16_t hi = read(pc++);
@@ -48,38 +56,55 @@ public:
         return (hi << 8) | lo;
     }
 
-    /*
-        Absolute mode
 
-        OPC $LLHH
-            Operand is address $HHLL
-
-        OPC $LLHH,X
-            Operand is address; 
-            Effective address is address incremented by register with carry
+    /* 
+        Read 2-bytes address from memory indirect 
+        Shift program counter twice
     */
-    uint8_t abs(uint16_t & pc, uint8_t rg = 0x00)
+
+    uint16_t indirect(uint16_t & pc)
     {
-        auto index = addressRead(pc);
-        return read(0xFFFF & (index + rg));      
+        auto index = direct(pc);
+        return direct(index);
     }
+
+
+    /*       
+        Absolute mode
+    */
+
+    uint16_t abs(uint16_t & pc, uint8_t rg = 0x00)
+    {
+        auto index = direct(pc);
+        return 0xFFFF & (index + rg);      
+    } 
+
 
     /*
         Zeropage mode
-
-        OPC $LLHH
-            Operand is zeropage address (hi-byte is zero, address = $00LL)
-
-        OPC $LLHH,X/Y
-            Operand is zeropage address
-            Effective address is address incremented by register without carry
     */
+
     uint8_t zpg(uint16_t & pc, uint8_t rg = 0x00)
     {
         auto lo = read(pc++);
 
         // Zeropage only
-        return read(0x00FF & (lo + rg));
+        return 0x00FF & (lo + rg);
+    }
+
+
+    /*
+        Zeropage indexed indirect
+    */
+
+    uint16_t indexed(uint16_t & pc, uint8_t rg = 0x00)
+    {
+        uint16_t zp = zpg(pc, rg);
+
+        uint16_t lo = read(0x00FF & zp++);
+        uint16_t hi = read(0x00FF & zp++);
+
+        return (hi << 8) | lo;
     }
 };
 
@@ -132,14 +157,14 @@ void Cpu::reset ()
     With immediate addressing, the operand is contained in the
     second byte of the instruction; no further memory address-
     ing is required.
-
-    OPC #$BB
-    Operand is byte BB
 */
 
 void Cpu::IMM () 
 { 
-    op = imp -> read(pc++);
+    // OPC #$BB
+    // Operand is byte BB
+
+    op = pc++;
 }
 
 
@@ -155,6 +180,9 @@ void Cpu::IMM ()
 
 void Cpu::ABS () 
 {
+    // OPC $LLHH	
+    // Operand is address $HHLL
+
     op = imp -> abs(pc);
 }
 
@@ -176,11 +204,20 @@ void Cpu::ABS ()
 
 void Cpu::ABSX () 
 { 
+    // OPC $LLHH,X	
+    // Operand is address; 
+    // Effective address is address incremented by X with carry
+
     op = imp -> abs(pc, x);
 }
 
+
 void Cpu::ABSY () 
 { 
+    // OPC $LLHH,Y	
+    // Operand is address; 
+    // Effective address is address incremented by Y with carry
+
     op = imp -> abs(pc, y);
 }
 
@@ -197,6 +234,9 @@ void Cpu::ABSY ()
 
 void Cpu::ZPG () 
 {
+    // OPC $LL
+    // Operand is zeropage address (hi-byte is zero, address = $00LL)
+
     op = imp -> zpg(pc);
 }
 
@@ -217,11 +257,20 @@ void Cpu::ZPG ()
 
 void Cpu::ZPGX () 
 { 
+    // OPC $LL,X	
+    // Operand is zeropage address; 
+    // Effective address is address incremented by X without carry
+
     op = imp -> zpg(pc, x);
 }
 
+
 void Cpu::ZPGY () 
 { 
+    // OPC $LL,Y	
+    // Operand is zeropage address; 
+    // Effective address is address incremented by Y without carry
+
     op = imp -> zpg(pc, y);
 }
 
@@ -235,8 +284,8 @@ void Cpu::ZPGY ()
 */
 
 void Cpu::IMP () 
-{ 
-    op = 0x00;
+{
+    
 }
 
 
@@ -249,6 +298,9 @@ void Cpu::IMP ()
 
 void Cpu::ACC () 
 { 
+    // OPC A	
+    // Operand is AC (implied single byte instruction)
+
     op = a;
 }
 
@@ -268,7 +320,11 @@ void Cpu::ACC ()
 
 void Cpu::IND () 
 {
-    // ~
+    // OPC ($LLHH)	
+    // Operand is address; 
+    // Effective address is contents of word at address: C.w($HHLL)
+
+    op = imp -> indirect(pc);
 }
 
 
@@ -289,7 +345,7 @@ void Cpu::INDX ()
     // Operand is zeropage address; 
     // Effective address is word in (LL + X, LL + X + 1), inc. without carry: C.w($00LL + X)
 
-    
+    op = imp -> indexed(pc, x);
 }
 
 
@@ -306,7 +362,15 @@ void Cpu::INDX ()
     eight bits of the effective address. 
 */
 
-void Cpu::INDY () { }
+void Cpu::INDY () 
+{
+    // OPC ($LL),Y	
+    // Operand is zeropage address; 
+    // Effective address is word in (LL, LL + 1) incremented by Y with carry: C.w($00LL) + Y
+
+    auto index = imp -> indexed(pc);
+    op = 0x00FF & (index + y);
+}
 
 
 /* 
@@ -321,7 +385,10 @@ void Cpu::INDY () { }
     from the next instruction. 
 */
 
-void Cpu::REL () { }
+void Cpu::REL () 
+{ 
+    IMM();
+}
 
 
 /*
@@ -344,14 +411,21 @@ void Cpu::REL () { }
     +--------------+--------------+-----+-------+--------+
 */
 
-uint8_t Cpu::ADC() 
-{ 
+uint8_t Cpu::ADC (uint8_t arg)
+{
     if (p.isDecimal())
     {
         // BCD mode
     }
 
     return 0x00; 
+}
+
+
+uint8_t Cpu::ADC() 
+{ 
+    auto data = imp -> read(pc);
+    return ADC(data); 
 }
 
 
@@ -469,7 +543,34 @@ uint8_t Cpu::RRA() { return 0x00; }
 uint8_t Cpu::RTI() { return 0x00; }
 uint8_t Cpu::RTS() { return 0x00; }
 uint8_t Cpu::SAX() { return 0x00; }
-uint8_t Cpu::SBC() { return 0x00; }
+
+
+/*
+    SBC
+    Subtract Memory from Accumulator with Borrow
+
+    A - M - ~C -> A                            N Z C I D V
+                                               + + + - - +
+    +--------------+--------------+-----+-------+--------+
+    | addressing   | assembler    | opc | bytes | cycles |
+    +--------------+--------------+-----+-------+--------+
+    | immediate    | SBC #oper    | E9  | 2     | 2      |
+    | zeropage     | SBC oper     | E5  | 2     | 3      |
+    | zeropage,X   | SBC oper,X   | F5  | 2     | 4      |
+    | absolute     | SBC oper     | ED  | 3     | 4      |
+    | absolute,X   | SBC oper,X   | FD  | 3     | 4*     |
+    | absolute,Y   | SBC oper,Y   | F9  | 3     | 4*     |
+    | (indirect,X) | SBC (oper,X) | E1  | 2     | 6      |
+    | (indirect),Y | SBC (oper),Y | F1  | 2     | 5*     |
+    +--------------+--------------+-----+-------+--------+
+*/
+
+uint8_t Cpu::SBC() 
+{ 
+    auto data = imp -> read(op);
+    return ADC(~data); 
+}
+
 uint8_t Cpu::SBX() { return 0x00; }
 uint8_t Cpu::SEC() { return 0x00; }
 uint8_t Cpu::SED() { return 0x00; }

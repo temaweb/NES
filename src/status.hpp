@@ -85,10 +85,15 @@ public:
         return isSet(Status::Carry);
     }
 
+    uint8_t getCarry() const {
+        return status & Status::Carry;
+    }
+
 private:
 
-    inline bool isSet(Flags flag) const {
-        return this -> status & flag;
+    inline bool isSet(Flags flag) const 
+    {
+        return (status & flag) == flag;
     }
 };
 
