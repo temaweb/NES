@@ -29,18 +29,16 @@ class Bus;
 class Map;
 
 //
-// MOS Technology 6502 
+// MOS Technology 6502
 //
 
 class Cpu
 {
 private:
-
     class Imp;
     friend class Map;
 
 private:
-
     //
     // A    Accumulator
     //
@@ -52,7 +50,6 @@ private:
 
     uint8_t a = 0x00;
 
-
     //
     // X    Index register X
     //
@@ -63,7 +60,6 @@ private:
 
     uint8_t x = 0x00;
 
-
     //
     // Y    Index register Y
     //
@@ -73,7 +69,6 @@ private:
     //
 
     uint8_t y = 0x00;
-
 
     //
     // S    Stack pointer
@@ -89,7 +84,6 @@ private:
 
     uint8_t s = 0x00;
 
-
     //
     // P    Processor status
     //
@@ -103,8 +97,7 @@ private:
     //      or by using the flag set or clear instructions.
     //
 
-    Status p {};
-
+    Status p{};
 
     //
     // OP   Current operand (Example: ADD #OP)
@@ -112,7 +105,6 @@ private:
     //
 
     uint16_t op = 0x0000;
-
 
     //
     // PC   Program Counter
@@ -129,18 +121,11 @@ private:
     uint16_t pc = 0x0000;
 
 
-    //
     // 6502 instruction mapping (mnemonic table)
     // Includes all common/undocumented instructions
-    //
-
     std::unique_ptr<Map> map;
-    
 
-    //
     // Other private implementations
-    //
-
     std::unique_ptr<Imp> imp;
 
 
@@ -148,111 +133,109 @@ private:
     // Addressing modes
     //
 
-    void IMM  (); // immediate
-    void ABS  (); // absolute
-    void ABSX (); // absolute, X-indexed
-    void ABSY (); // absolute, Y-indexed
-    void ZPG  (); // zeropage
-    void ZPGX (); // zeropage, X-indexed
-    void ZPGY (); // zeropage, Y-indexed
-    void IMP  (); // implied
-    void ACC  (); // accumulator
-    void IND  (); // indirect
-    void INDX (); // X-indexed, indirect
-    void INDY (); // indirect, Y-indexed
-    void REL  (); // relative
-
+    void IMM();  // immediate
+    void ABS();  // absolute
+    void ABSX(); // absolute, X-indexed
+    void ABSY(); // absolute, Y-indexed
+    void ZPG();  // zeropage
+    void ZPGX(); // zeropage, X-indexed
+    void ZPGY(); // zeropage, Y-indexed
+    void IMP();  // implied
+    void ACC();  // accumulator
+    void IND();  // indirect
+    void INDX(); // X-indexed, indirect
+    void INDY(); // indirect, Y-indexed
+    void REL();  // relative
 
     //
     // Instruction set
     //
 
-    uint8_t ADC(); // Add Memory to Accumulator with Carry
-    uint8_t ADC(uint8_t arg);
-    
-    uint8_t ALR(); // AND opration and LSR
-    uint8_t ANC(); // AND opration and set C as ASL
-    uint8_t AND(); // AND Memory with Accumulator
-    uint8_t ANE(); // (A OR CONST) and X "AND" operation
-    uint8_t ARR(); // AND opration and ROR
-    uint8_t ASL(); // Shift Left One Bit (Memory or Accumulator)
-    uint8_t BCC(); // Branch on Carry Clear
-    uint8_t BCS(); // Branch on Carry Set
-    uint8_t BEQ(); // Branch on Result Zero
-    uint8_t BIT(); // Test Bits in Memory with Accumulator
-    uint8_t BMI(); // Branch on Result Minus
-    uint8_t BNE(); // Branch on Result not Zero
-    uint8_t BPL(); // Branch on Result Plus
-    uint8_t BRK(); // Force Break
-    uint8_t BVC(); // Branch on Overflow Clear
-    uint8_t BVS(); // Branch on Overflow Set
-    uint8_t CLC(); // Clear Carry Flag
-    uint8_t CLD(); // Clear Decimal Mode
-    uint8_t CLI(); // Clear interrupt Disable Bit
-    uint8_t CLV(); // Clear Overflow Flag
-    uint8_t CMP(); // Compare Memory and Accumulator
-    uint8_t CPX(); // Compare Memory and Index X
-    uint8_t CPY(); // Compare Memory and Index Y
-    uint8_t DCP(); // DEC operation and CMP operation
-    uint8_t DEC(); // Decrement Memory by One
-    uint8_t DEX(); // Decrement Index X by One
-    uint8_t DEY(); // Decrement Index Y by One
-    uint8_t EOR(); // "Exclusive-Or" Memory with Accumulator
-    uint8_t INC(); // Increment Memory by One
-    uint8_t INX(); // Increment Index X by One
-    uint8_t INY(); // Increment Index Y by One
-    uint8_t ISC(); // INC oprtation and SBC oper
-    uint8_t JAM(); // These instructions freeze the CPU.
-    uint8_t JMP(); // Jump to New Location
-    uint8_t JSR(); // Jump to New Location Saving Return Address
-    uint8_t LAS(); // LDA/TSX operation
-    uint8_t LAX(); // LDA operation and LDX oper
-    uint8_t LDA(); // Load Accumulator with Memory
-    uint8_t LDX(); // Load Index X with Memory
-    uint8_t LDY(); // Load Index Y with Memory
-    uint8_t LSR(); // Shift Right One Bit (Memory or Accumulator)
-    uint8_t LXA(); // Store * AND oper in A and X
-    uint8_t NOP(); // No Operation
-    uint8_t ORA(); // OR Memory with Accumulator
-    uint8_t PHA(); // Push Accumulator on Stack
-    uint8_t PHP(); // Push Processor Status on Stack
-    uint8_t PLA(); // Pull Accumulator from Stack
-    uint8_t PLP(); // Pull Processor Status from Stack
-    uint8_t RLA(); // ROL operation and AND oper
-    uint8_t ROL(); // Rotate One Bit Left (Memory or Accumulator)
-    uint8_t ROR(); // Rotate One Bit Right (Memory or Accumulator)
-    uint8_t RRA(); // ROR operation and ADC oper
-    uint8_t RTI(); // Return from Interrupt
-    uint8_t RTS(); // Return from Subroutine
-    uint8_t SAX(); // A and X are put on the bus at the same time and stored in M
-    uint8_t SBC(); // Subtract Memory from Accumulator with Borrow
-    uint8_t SBX(); // CMP and DEX at once, sets flags like CMP
-    uint8_t SEC(); // Set Carry Flag
-    uint8_t SED(); // Set Decimal Mode
-    uint8_t SEI(); // Set Interrupt Disable Status
-    uint8_t SHA(); // Stores A AND X AND (high-byte of addr. + 1) at addr.
-    uint8_t SHY(); // Stores Y AND (high-byte of addr. + 1) at addr.
-    uint8_t SHX(); // Stores X AND (high-byte of addr. + 1) at addr.
-    uint8_t SLO(); // ASL operation and ORA operation
-    uint8_t SRE(); // LSR operation and EOR operation
-    uint8_t STA(); // Store Accumulator in Memory
-    uint8_t STX(); // Store Index X in Memory
-    uint8_t STY(); // Store Index Y in Memory
-    uint8_t TAS(); // Puts A AND X in SP and stores A AND X AND (high-byte of addr. + 1) at addr.
-    uint8_t TAX(); // Transfer Accumulator to Index X
-    uint8_t TAY(); // Transfer Accumulator to Index Y
-    uint8_t TSX(); // Transfer Stack Pointer to Index X
-    uint8_t TXA(); // Transfer Index X to Accumulator
-    uint8_t TXS(); // Transfer Index X to Stack Pointer
-    uint8_t TYA(); // Transfer Index Y to Accumulator
-    uint8_t USBC(); // SBC operation and NOP
+    void ADC(); // Add Memory to Accumulator with Carry
+    void ADC(uint8_t arg);
+
+    void ALR();  // AND opration and LSR
+    void ANC();  // AND opration and set C as ASL
+    void AND();  // AND Memory with Accumulator
+    void ANE();  // (A OR CONST) and X "AND" operation
+    void ARR();  // AND opration and ROR
+    void ASL();  // Shift Left One Bit (Memory or Accumulator)
+    void BCC();  // Branch on Carry Clear
+    void BCS();  // Branch on Carry Set
+    void BEQ();  // Branch on Result Zero
+    void BIT();  // Test Bits in Memory with Accumulator
+    void BMI();  // Branch on Result Minus
+    void BNE();  // Branch on Result not Zero
+    void BPL();  // Branch on Result Plus
+    void BRK();  // Force Break
+    void BVC();  // Branch on Overflow Clear
+    void BVS();  // Branch on Overflow Set
+    void CLC();  // Clear Carry Flag
+    void CLD();  // Clear Decimal Mode
+    void CLI();  // Clear interrupt Disable Bit
+    void CLV();  // Clear Overflow Flag
+    void CMP();  // Compare Memory and Accumulator
+    void CPX();  // Compare Memory and Index X
+    void CPY();  // Compare Memory and Index Y
+    void DCP();  // DEC operation and CMP operation
+    void DEC();  // Decrement Memory by One
+    void DEX();  // Decrement Index X by One
+    void DEY();  // Decrement Index Y by One
+    void EOR();  // "Exclusive-Or" Memory with Accumulator
+    void INC();  // Increment Memory by One
+    void INX();  // Increment Index X by One
+    void INY();  // Increment Index Y by One
+    void ISC();  // INC oprtation and SBC oper
+    void JAM();  // These instructions freeze the CPU.
+    void JMP();  // Jump to New Location
+    void JSR();  // Jump to New Location Saving Return Address
+    void LAS();  // LDA/TSX operation
+    void LAX();  // LDA operation and LDX oper
+    void LDA();  // Load Accumulator with Memory
+    void LDX();  // Load Index X with Memory
+    void LDY();  // Load Index Y with Memory
+    void LSR();  // Shift Right One Bit (Memory or Accumulator)
+    void LXA();  // Store * AND oper in A and X
+    void NOP();  // No Operation
+    void ORA();  // OR Memory with Accumulator
+    void PHA();  // Push Accumulator on Stack
+    void PHP();  // Push Processor Status on Stack
+    void PLA();  // Pull Accumulator from Stack
+    void PLP();  // Pull Processor Status from Stack
+    void RLA();  // ROL operation and AND oper
+    void ROL();  // Rotate One Bit Left (Memory or Accumulator)
+    void ROR();  // Rotate One Bit Right (Memory or Accumulator)
+    void RRA();  // ROR operation and ADC oper
+    void RTI();  // Return from Interrupt
+    void RTS();  // Return from Subroutine
+    void SAX();  // A and X are put on the bus at the same time and stored in M
+    void SBC();  // Subtract Memory from Accumulator with Borrow
+    void SBX();  // CMP and DEX at once, sets flags like CMP
+    void SEC();  // Set Carry Flag
+    void SED();  // Set Decimal Mode
+    void SEI();  // Set Interrupt Disable Status
+    void SHA();  // Stores A AND X AND (high-byte of addr. + 1) at addr.
+    void SHY();  // Stores Y AND (high-byte of addr. + 1) at addr.
+    void SHX();  // Stores X AND (high-byte of addr. + 1) at addr.
+    void SLO();  // ASL operation and ORA operation
+    void SRE();  // LSR operation and EOR operation
+    void STA();  // Store Accumulator in Memory
+    void STX();  // Store Index X in Memory
+    void STY();  // Store Index Y in Memory
+    void TAS();  // Puts A AND X in SP and stores A AND X AND (high-byte of addr. + 1) at addr.
+    void TAX();  // Transfer Accumulator to Index X
+    void TAY();  // Transfer Accumulator to Index Y
+    void TSX();  // Transfer Stack Pointer to Index X
+    void TXA();  // Transfer Index X to Accumulator
+    void TXS();  // Transfer Index X to Stack Pointer
+    void TYA();  // Transfer Index Y to Accumulator
+    void USBC(); // SBC operation and NOP
 
 public:
-
     Cpu(std::shared_ptr<Bus> bus);
 
-    int  clock ();
-    void reset ();
+    int clock();
+    void reset();
 };
 
 #endif

@@ -22,17 +22,15 @@
 class Cpu::Imp
 {
 private:
-
     // Bus communication interface
     // Interact with each other devices i.e. RAM, APU, PPU etc.
     std::shared_ptr<Bus> bus;
-
 
 public:
 
     Imp(std::shared_ptr<Bus> bus) : bus(bus)
     { }
-    
+
 
     /*
         Read byte from bus
@@ -40,6 +38,15 @@ public:
     uint8_t read(uint16_t index)
     {
         return bus -> read(index);
+    }
+
+
+    /*
+        Write byte to bus
+    */
+    void write(uint16_t address, uint8_t data)
+    {
+        bus -> write(address, data);
     }
 
 
@@ -411,21 +418,19 @@ void Cpu::REL ()
     +--------------+--------------+-----+-------+--------+
 */
 
-uint8_t Cpu::ADC (uint8_t arg)
+void Cpu::ADC (uint8_t arg)
 {
     if (p.isDecimal())
     {
         // BCD mode
     }
-
-    return 0x00; 
 }
 
 
-uint8_t Cpu::ADC() 
+void Cpu::ADC() 
 { 
     auto data = imp -> read(pc);
-    return ADC(data); 
+    ADC(data); 
 }
 
 
@@ -442,9 +447,9 @@ uint8_t Cpu::ADC()
     +------------+-----------+-----+-------+--------+
 */
 
-uint8_t Cpu::ALR() 
+void Cpu::ALR() 
 {
-    return 0x00; 
+    NOP(); 
 }
 
 
@@ -461,9 +466,9 @@ uint8_t Cpu::ALR()
     +------------+-----------+-----+-------+--------+
 */
 
-uint8_t Cpu::ANC() 
+void Cpu::ANC() 
 { 
-    return 0x00; 
+    NOP(); 
 }
 
 /*
@@ -486,63 +491,145 @@ uint8_t Cpu::ANC()
     +--------------+--------------+-----+-------+--------+
 */
 
-uint8_t Cpu::AND() 
+void Cpu::AND() 
 { 
-    return 0x00; 
+    a &= imp -> read(op);
+
+    p.setZero(a);
+    p.setNegative(a);
 }
 
-uint8_t Cpu::ANE() { return 0x00; }
-uint8_t Cpu::ARR() { return 0x00; }
-uint8_t Cpu::ASL() { return 0x00; }
-uint8_t Cpu::BCC() { return 0x00; }
-uint8_t Cpu::BCS() { return 0x00; }
-uint8_t Cpu::BEQ() { return 0x00; }
-uint8_t Cpu::BIT() { return 0x00; }
-uint8_t Cpu::BMI() { return 0x00; }
-uint8_t Cpu::BNE() { return 0x00; }
-uint8_t Cpu::BPL() { return 0x00; }
-uint8_t Cpu::BRK() { return 0x00; }
-uint8_t Cpu::BVC() { return 0x00; }
-uint8_t Cpu::BVS() { return 0x00; }
-uint8_t Cpu::CLC() { return 0x00; }
-uint8_t Cpu::CLD() { return 0x00; }
-uint8_t Cpu::CLI() { return 0x00; }
-uint8_t Cpu::CLV() { return 0x00; }
-uint8_t Cpu::CMP() { return 0x00; }
-uint8_t Cpu::CPX() { return 0x00; }
-uint8_t Cpu::CPY() { return 0x00; }
-uint8_t Cpu::DCP() { return 0x00; }
-uint8_t Cpu::DEC() { return 0x00; }
-uint8_t Cpu::DEX() { return 0x00; }
-uint8_t Cpu::DEY() { return 0x00; }
-uint8_t Cpu::EOR() { return 0x00; }
-uint8_t Cpu::INC() { return 0x00; }
-uint8_t Cpu::INX() { return 0x00; }
-uint8_t Cpu::INY() { return 0x00; }
-uint8_t Cpu::ISC() { return 0x00; }
-uint8_t Cpu::JAM() { return 0x00; }
-uint8_t Cpu::JMP() { return 0x00; }
-uint8_t Cpu::JSR() { return 0x00; }
-uint8_t Cpu::LAS() { return 0x00; }
-uint8_t Cpu::LAX() { return 0x00; }
-uint8_t Cpu::LDA() { return 0x00; }
-uint8_t Cpu::LDX() { return 0x00; }
-uint8_t Cpu::LDY() { return 0x00; }
-uint8_t Cpu::LSR() { return 0x00; }
-uint8_t Cpu::LXA() { return 0x00; }
-uint8_t Cpu::NOP() { return 0x00; }
-uint8_t Cpu::ORA() { return 0x00; }
-uint8_t Cpu::PHA() { return 0x00; }
-uint8_t Cpu::PHP() { return 0x00; }
-uint8_t Cpu::PLA() { return 0x00; }
-uint8_t Cpu::PLP() { return 0x00; }
-uint8_t Cpu::RLA() { return 0x00; }
-uint8_t Cpu::ROL() { return 0x00; }
-uint8_t Cpu::ROR() { return 0x00; }
-uint8_t Cpu::RRA() { return 0x00; }
-uint8_t Cpu::RTI() { return 0x00; }
-uint8_t Cpu::RTS() { return 0x00; }
-uint8_t Cpu::SAX() { return 0x00; }
+
+/*
+    ANE (XAA)
+    * AND X + AND oper
+
+    Highly unstable, do not use.
+
+    A base value in A is determined based on the contets of A 
+    and a constant, which may be typically $00, $ff, $ee, etc. 
+    The value of this constant depends on temerature, the chip 
+    series, and maybe other factors, as well.
+    In order to eliminate these uncertaincies from the 
+    equation, use either 0 as the operand or a value of $FF in 
+    the accumulator.
+
+    (A OR CONST) AND X AND oper -> A      N Z C I D V
+                                          + + - - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | immediate  | ANE #oper | 8B  | 2     | 2      |
+    +------------+-----------+-----+-------+--------+    
+*/
+
+void Cpu::ANE() 
+{
+    NOP();
+}
+
+
+/*
+    ARR
+    AND oper + ROR
+
+    This operation involves the adder:
+    V-flag is set according to (A AND oper) + oper
+    The carry is not set, but bit 7 (sign) is exchanged with the carry
+
+    A AND oper, C -> [76543210] -> C      N Z C I D V
+                                          + + + - - +
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | immediate  | ARR #oper | 6B  | 2     | 2      |
+    +------------+-----------+-----+-------+--------+
+*/
+
+void Cpu::ARR() 
+{  
+    NOP();
+}
+
+
+/*
+    ASL
+    Shift Left One Bit (Memory or Accumulator)
+
+    C <- [76543210] <- 0                    N Z C I D V
+                                            + + + - - -
+    +-------------+------------+-----+-------+--------+
+    | addressing  | assembler  | opc | bytes | cycles |
+    +-------------+------------+-----+-------+--------+
+    | accumulator | ASL A      | 0A  | 1     | 2      |
+    | zeropage    | ASL oper   | 06  | 2     | 5      |
+    | zeropage,X  | ASL oper,X | 16  | 2     | 6      |
+    | absolute    | ASL oper   | 0E  | 3     | 6      |
+    | absolute,X  | ASL oper,X | 1E  | 3     | 7      |
+    +-------------+------------+-----+-------+--------+
+*/
+
+void Cpu::ASL() 
+{  
+    uint16_t data = imp -> read(op) << 1;
+
+    p.setNegative (data);
+    p.setZero     (data);
+    p.setCarry    (data);
+
+    imp -> write(pc, data);
+}
+
+
+void Cpu::BCC() {  }
+void Cpu::BCS() {  }
+void Cpu::BEQ() {  }
+void Cpu::BIT() {  }
+void Cpu::BMI() {  }
+void Cpu::BNE() {  }
+void Cpu::BPL() {  }
+void Cpu::BRK() {  }
+void Cpu::BVC() {  }
+void Cpu::BVS() {  }
+void Cpu::CLC() {  }
+void Cpu::CLD() {  }
+void Cpu::CLI() {  }
+void Cpu::CLV() {  }
+void Cpu::CMP() {  }
+void Cpu::CPX() {  }
+void Cpu::CPY() {  }
+void Cpu::DCP() {  }
+void Cpu::DEC() {  }
+void Cpu::DEX() {  }
+void Cpu::DEY() {  }
+void Cpu::EOR() {  }
+void Cpu::INC() {  }
+void Cpu::INX() {  }
+void Cpu::INY() {  }
+void Cpu::ISC() {  }
+void Cpu::JAM() {  }
+void Cpu::JMP() {  }
+void Cpu::JSR() {  }
+void Cpu::LAS() {  }
+void Cpu::LAX() {  }
+void Cpu::LDA() {  }
+void Cpu::LDX() {  }
+void Cpu::LDY() {  }
+void Cpu::LSR() {  }
+void Cpu::LXA() {  }
+void Cpu::NOP() {  }
+void Cpu::ORA() {  }
+void Cpu::PHA() {  }
+void Cpu::PHP() {  }
+void Cpu::PLA() {  }
+void Cpu::PLP() {  }
+void Cpu::RLA() {  }
+void Cpu::ROL() {  }
+void Cpu::ROR() {  }
+void Cpu::RRA() {  }
+void Cpu::RTI() {  }
+void Cpu::RTS() {  }
+void Cpu::SAX() {  }
 
 
 /*
@@ -565,29 +652,29 @@ uint8_t Cpu::SAX() { return 0x00; }
     +--------------+--------------+-----+-------+--------+
 */
 
-uint8_t Cpu::SBC() 
+void Cpu::SBC() 
 { 
     auto data = imp -> read(op);
-    return ADC(~data); 
+    ADC(~data); 
 }
 
-uint8_t Cpu::SBX() { return 0x00; }
-uint8_t Cpu::SEC() { return 0x00; }
-uint8_t Cpu::SED() { return 0x00; }
-uint8_t Cpu::SEI() { return 0x00; }
-uint8_t Cpu::SHA() { return 0x00; }
-uint8_t Cpu::SHY() { return 0x00; }
-uint8_t Cpu::SHX() { return 0x00; }
-uint8_t Cpu::SLO() { return 0x00; }
-uint8_t Cpu::SRE() { return 0x00; }
-uint8_t Cpu::STA() { return 0x00; }
-uint8_t Cpu::STX() { return 0x00; }
-uint8_t Cpu::STY() { return 0x00; }
-uint8_t Cpu::TAS() { return 0x00; }
-uint8_t Cpu::TAX() { return 0x00; }
-uint8_t Cpu::TAY() { return 0x00; }
-uint8_t Cpu::TSX() { return 0x00; }
-uint8_t Cpu::TXA() { return 0x00; }
-uint8_t Cpu::TXS() { return 0x00; }
-uint8_t Cpu::TYA() { return 0x00; }
-uint8_t Cpu::USBC() { return 0x00; }
+void Cpu::SBX() {  }
+void Cpu::SEC() {  }
+void Cpu::SED() {  }
+void Cpu::SEI() {  }
+void Cpu::SHA() {  }
+void Cpu::SHY() {  }
+void Cpu::SHX() {  }
+void Cpu::SLO() {  }
+void Cpu::SRE() {  }
+void Cpu::STA() {  }
+void Cpu::STX() {  }
+void Cpu::STY() {  }
+void Cpu::TAS() {  }
+void Cpu::TAX() {  }
+void Cpu::TAY() {  }
+void Cpu::TSX() {  }
+void Cpu::TXA() {  }
+void Cpu::TXS() {  }
+void Cpu::TYA() {  }
+void Cpu::USBC() {  }

@@ -61,39 +61,34 @@ public:
         return isSet(Status::Decimal);
     }
 
-    bool isNegative() const {
-        return isSet(Status::Negative);
+    template<typename T>
+    void setCarry(const T & value) {
+        setFlag(Status::Carry, value & 0x100);
     }
 
-    bool isOverflow() const {
-        return isSet(Status::Overflow);
+    template<typename T>
+    void setNegative(const T & value) {
+        setFlag(Status::Negative, value & 0x80);
     }
 
-    bool isBreak() const {
-        return isSet(Status::Break);
-    }
-
-    bool isInterrupt() const {
-        return isSet(Status::Interrupt);
-    }
-
-    bool isZero() const {
-        return isSet(Status::Zero);
-    }
-    
-    bool isCarry() const {
-        return isSet(Status::Carry);
-    }
-
-    uint8_t getCarry() const {
-        return status & Status::Carry;
+    template<typename T>
+    void setZero(const T & value) {
+        setFlag(Status::Zero, value == 0x00);
     }
 
 private:
 
-    inline bool isSet(Flags flag) const 
-    {
+    bool isSet(Flags flag) const {
         return (status & flag) == flag;
+    }
+
+    void setFlag(Status::Flags flag, bool value)
+    {
+        if (value) {
+            status |= flag;
+        } else {
+            status &= ~flag;
+        }
     }
 };
 

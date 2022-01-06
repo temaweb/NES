@@ -22,8 +22,8 @@ class Cpu;
 
 struct Cmd
 {
-    uint8_t (Cpu::*cmd)  (void);
-    void    (Cpu::*mode) (void);
+    void (Cpu::*cmd)  (void);
+    void (Cpu::*mode) (void);
 
     uint8_t execute(Cpu * cpu)
     {
@@ -32,7 +32,9 @@ struct Cmd
 
         // Execute command and return programm cycles
         // with addition cycles depends on memory mode
-        return (cpu->*cmd)();
+        (cpu->*cmd)();
+
+        return 0x00;
     }
 };
 

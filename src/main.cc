@@ -42,31 +42,39 @@ void loop()
 
 int main()
 {
-    SDL_Init(SDL_INIT_VIDEO);
+    uint16_t x = 0x10FF;
+    uint8_t  y = 0xFF & x;
 
-    auto window = SDL_CreateWindow ("Emulator", 
-
-        // the x position of the window
-        SDL_WINDOWPOS_UNDEFINED, 
-
-        // the y position of the window
-        SDL_WINDOWPOS_UNDEFINED, 
-
-        800,  // the width of the window, in screen coordinates
-        600,  // the height of the window, in screen coordinates
-        0     // 0, or one or more SDL_WindowFlags OR'd together
-    );
-
-    auto renderer = SDL_CreateRenderer (window, -1, SDL_RENDERER_ACCELERATED);
-
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-    SDL_RenderClear(renderer);
-    SDL_RenderPresent(renderer);
-
-    loop();
-
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+    std::cout << std::hex   << (int) y;
+    std::cout << std::endl;
 
     return 0;
+
+    // SDL_Init(SDL_INIT_VIDEO);
+
+    // auto window = SDL_CreateWindow ("Emulator", 
+
+    //     // the x position of the window
+    //     SDL_WINDOWPOS_UNDEFINED, 
+
+    //     // the y position of the window
+    //     SDL_WINDOWPOS_UNDEFINED, 
+
+    //     800,  // the width of the window, in screen coordinates
+    //     600,  // the height of the window, in screen coordinates
+    //     0     // 0, or one or more SDL_WindowFlags OR'd together
+    // );
+
+    // auto renderer = SDL_CreateRenderer (window, -1, SDL_RENDERER_ACCELERATED);
+
+    // SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+    // SDL_RenderClear(renderer);
+    // SDL_RenderPresent(renderer);
+
+    // loop();
+
+    // SDL_DestroyWindow(window);
+    // SDL_Quit();
+
+    // return 0;
 }
