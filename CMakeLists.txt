@@ -1,24 +1,36 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.18)
 
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+add_subdirectory("ext/fmt")
+
 # set the project name
 project(NES VERSION 1.0)
 
-find_package(SDL2 REQUIRED)
-include_directories(${SDL2_INCLUDE_DIRS})
+if(MSVC)
+    # warning level 4 and all warnings as errors
+    add_compile_options(/W4 /WX)
+else()
+    # lots of warnings and all warnings as errors
+    add_compile_options(-Wall -Wextra -pedantic -Werror)
+endif()
 
 # create emulator target
 add_executable(emulator)
 
 # Add emulator sources
-target_sources(emulator PRIVATE 
-    "src/main.cc" 
-    "src/map.cc"
-    "src/bus.cc"
-    "src/cpu.cc"
+target_sources(emulator PRIVATE  
+    "src/cpu/cpu.cc"
+    "src/cpu/map.cc"
+    "src/bus/bus.cc"
+    "src/log.cc"
+    "src/main.cc"
 )
 
-target_link_libraries(emulator ${SDL2_LIBRARIES})
+# add target-specific include directory
+target_include_directories(emulator PUBLIC "src")
+
+# add {fmt} library
+target_link_libraries(emulator fmt::fmt)

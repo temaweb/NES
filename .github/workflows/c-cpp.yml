@@ -15,6 +15,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    # Update submodules
+    - name: Pull submodules recursively
+      run: git submodule update --init --recursive
+
       # Creates build directory. Full paths should be given. 
       # Any parent directories that do not exist will also be created.
     - name: Create Build Environment

@@ -18,25 +18,28 @@
 #ifndef CPU_HPP
 #define CPU_HPP
 
+#include <memory>
 #include <array>
 #include <cstdint>
-#include <memory>
 #include <string>
 
-#include "status.hpp"
-
-class Bus;
-class Map;
+#include "status.h"
 
 //
 // MOS Technology 6502
 //
 
+class Map;
+class Log;
+class Bus;
+
 class Cpu
 {
 private:
     class Imp;
+
     friend class Map;
+    friend class Log;
 
 private:
     //
@@ -97,7 +100,7 @@ private:
     //      or by using the flag set or clear instructions.
     //
 
-    Status p{};
+    Status p {};
 
     //
     // OP   Current operand (Example: ADD #OP)
@@ -128,6 +131,8 @@ private:
     // Other private implementations
     std::unique_ptr<Imp> imp;
 
+    // Disassembler
+    std::unique_ptr<Log> log;
 
     //
     // Addressing modes
@@ -229,13 +234,15 @@ private:
     void TXA();  // Transfer Index X to Accumulator
     void TXS();  // Transfer Index X to Stack Pointer
     void TYA();  // Transfer Index Y to Accumulator
-    void USBC(); // SBC operation and NOP
+    void USB();  // USBC operation and NOP
 
 public:
     Cpu(std::shared_ptr<Bus> bus);
 
-    int clock();
+    void clock();
     void reset();
+
+    ~Cpu();
 };
 
 #endif

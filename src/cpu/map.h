@@ -15,27 +15,35 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CMD_HPP
-#define CMD_HPP
+#ifndef MAP_HPP
+#define MAP_HPP
 
-class Cpu;
+#include <array>
+#include <cstdint>
 
-struct Cmd
+#include "cmd.h"
+
+//
+// Command mapping
+//
+
+class Map
 {
-    void (Cpu::*cmd)  (void);
-    void (Cpu::*mode) (void);
+private:
 
-    uint8_t execute(Cpu * cpu)
-    {
-        // Switch address mode
-        (cpu->*mode)();
+    //
+    // 6502 Instruction set
+    // Includes all common/undocumented instructions
+    //
 
-        // Execute command and return programm cycles
-        // with addition cycles depends on memory mode
-        (cpu->*cmd)();
+    std::array<Cmd, 256> cmd;
 
-        return 0x00;
-    }
+public:
+
+    Map();
+
+    // Returns command by operation code
+    const Cmd & getCommand(uint8_t opcode) const;
 };
 
 #endif

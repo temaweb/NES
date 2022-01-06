@@ -29,11 +29,21 @@ private:
     std::array<uint8_t, 64 * 1024> ram {};
 
 public:
-    // Read byte on address
+
+    /*
+        Read byte on address
+    */
     uint8_t read (uint16_t index) const;
     
-    // Write byte on address
+    /*
+        Write byte on address
+    */
     void write (uint16_t index, uint8_t data);
+
+    /*
+        Print memory dump
+    */
+    void printDump (uint16_t from = 0x00, uint16_t to = 0xFF) const;
 };
 
 #endif

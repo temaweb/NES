@@ -42,6 +42,23 @@ private:
 
     uint8_t status = Status::Default;
 
+    void setFlag(Status::Flags flag, bool value)
+    {
+        if (value) {
+            status |= flag;
+        } else {
+            status &= ~flag;
+        }
+    }
+
+    uint8_t getFlag(Status::Flags flag) const { 
+        return isSet(flag) ? 1 : 0;
+    }
+
+    bool isSet(Flags flag) const {
+        return (status & flag) == flag;
+    }
+
 public:
 
     // Default constructor
@@ -76,19 +93,32 @@ public:
         setFlag(Status::Zero, value == 0x00);
     }
 
-private:
-
-    bool isSet(Flags flag) const {
-        return (status & flag) == flag;
+    uint8_t getCarry() const {
+        return getFlag(Status::Carry);
     }
 
-    void setFlag(Status::Flags flag, bool value)
-    {
-        if (value) {
-            status |= flag;
-        } else {
-            status &= ~flag;
-        }
+    uint8_t getNegative() const {
+        return getFlag(Status::Negative);
+    }
+
+    uint8_t getOverflow() const {
+        return getFlag(Status::Overflow);
+    }
+
+    uint8_t getBreak() const {
+        return getFlag(Status::Break);
+    }
+
+    uint8_t getInterrupt() const {
+        return getFlag(Status::Interrupt);
+    }
+
+    uint8_t getDecimal() const {
+        return getFlag(Status::Decimal);
+    }
+
+    uint8_t getZero() const {
+        return getFlag(Status::Zero);
     }
 };
 

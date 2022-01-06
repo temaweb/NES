@@ -10,71 +10,52 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
- *
+ *                                                                                                  
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <SDL.h>
-#include <iostream>
-#include <bitset>
+#include <memory>
 
-#include "cpu.hpp"
-#include "bus.hpp"
-#include "status.hpp"
+#include "log.h"
 
-void loop()
-{
-    SDL_Event e;
+#include "cpu/cpu.h"
+#include "bus/bus.h"
 
-    while (true)
-    while (SDL_PollEvent(&e))
-    {
-        switch (e.type)
-        {
-            case SDL_QUIT:
-            case SDL_KEYDOWN:
-            case SDL_MOUSEBUTTONDOWN:
-                return;
-        }
-    }
-}
+#include "fmt/core.h"
+#include "fmt/color.h"
+
+// Caption text style
+static const fmt::text_style caption = fg(fmt::color::dark_gray) | fmt::emphasis::underline;
+
 
 int main()
 {
-    uint16_t x = 0x10FF;
-    uint8_t  y = 0xFF & x;
+    fmt::print(caption, "\nDissassembly\n\n");
 
-    std::cout << std::hex   << (int) y;
-    std::cout << std::endl;
+    auto bus = std::make_shared<Bus>();
+    auto log = std::make_shared<Log>(bus);
+    auto cpu = std::make_unique<Cpu>(bus);
 
-    return 0;
+    bus -> write(0x0000, 0xA9); // LDA #$01 ; load accumulator with memory
+    bus -> write(0x0001, 0x01);
 
-    // SDL_Init(SDL_INIT_VIDEO);
+    bus -> write(0x0002, 0x99); // STA $0002,Y ; store accumulator in memory
+    bus -> write(0x0003, 0x02);
+    bus -> write(0x0004, 0x00);
 
-    // auto window = SDL_CreateWindow ("Emulator", 
+    bus -> write(0x0005, 0x69); // ADC #$01 ; add memory to accumulator with carry
+    bus -> write(0x0006, 0x01); 
 
-    //     // the x position of the window
-    //     SDL_WINDOWPOS_UNDEFINED, 
+    auto steps = 5;
 
-    //     // the y position of the window
-    //     SDL_WINDOWPOS_UNDEFINED, 
+    while (steps--) {
+        cpu -> clock();
+    }
 
-    //     800,  // the width of the window, in screen coordinates
-    //     600,  // the height of the window, in screen coordinates
-    //     0     // 0, or one or more SDL_WindowFlags OR'd together
-    // );
+    // Memory dump
+    fmt::print(caption, "\n\nMemory dump from {:#04x} to {:#04x}\n", 0x00, 0xFF);
 
-    // auto renderer = SDL_CreateRenderer (window, -1, SDL_RENDERER_ACCELERATED);
-
-    // SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-    // SDL_RenderClear(renderer);
-    // SDL_RenderPresent(renderer);
-
-    // loop();
-
-    // SDL_DestroyWindow(window);
-    // SDL_Quit();
-
-    // return 0;
+    bus -> printDump(0x02, 0xF2);
+    fmt::print("\n\n");
 }

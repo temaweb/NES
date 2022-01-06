@@ -15,33 +15,31 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MAP_HPP
-#define MAP_HPP
+#ifndef LOG_H
+#define LOG_H
 
-#include <array>
-#include "cmd.hpp"
+#include <cstdint>
+#include <memory>
+#include <string>
 
-//
-// Command mapping
-//
+class  Cpu;
+class  Bus; 
+struct Cmd;
 
-class Map
+class Log
 {
 private:
-
-    //
-    // 6502 Instruction set
-    // Includes all common/undocumented instructions
-    //
-
-    std::array<Cmd, 256> cmd;
+    std::shared_ptr<Bus> bus;
+    
+    void printArgs(uint16_t pc, uint8_t size) const;
 
 public:
+    Log(std::shared_ptr<Bus> bus);
 
-    Map();
-
-    // Returns command by operation code
-    const Cmd & getCommand(uint8_t opcode) const;
+    /*
+        Disassembly operation
+    */
+    void step (uint16_t pc, const Cmd & cmd, const Cpu * cpu) const;
 };
 
 #endif

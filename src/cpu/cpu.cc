@@ -15,9 +15,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cpu.hpp"
-#include "bus.hpp"
-#include "map.hpp"
+#include "log.h"
+
+#include "cpu/cpu.h"
+#include "cpu/map.h"
+#include "bus/bus.h"
 
 class Cpu::Imp
 {
@@ -42,11 +44,12 @@ public:
 
 
     /*
-        Write byte to bus
+        Write byte to bus without carry
     */
-    void write(uint16_t address, uint8_t data)
+    template<typename T>
+    void write(uint16_t address, T data)
     {
-        bus -> write(address, data);
+        bus -> write(address, (uint8_t) data);
     }
 
 
@@ -124,7 +127,14 @@ Cpu::Cpu(std::shared_ptr<Bus> bus)
 {
     map = std::make_unique<Map>();
     imp = std::make_unique<Imp>(bus);
+    log = std::make_unique<Log>(bus);
 }
+
+
+/*
+    Default destructor
+*/
+Cpu::~Cpu() = default;
 
 
 /*
@@ -132,15 +142,19 @@ Cpu::Cpu(std::shared_ptr<Bus> bus)
     Returns total programm cycles per operation
 */
 
-int Cpu::clock ()
+void Cpu::clock ()
 {
+    auto temp = pc;
+
     auto code = imp -> read(pc++);  
     auto oper = map -> getCommand(code);
 
     // Execute command and returns programm cycles
-    return oper.execute(this);
-}
+    oper.execute(this);
 
+    // Disassembled output
+    log -> step(temp, oper, this);
+}
 
 /*
     Reset CPU and clear all registers & flags
@@ -420,10 +434,17 @@ void Cpu::REL ()
 
 void Cpu::ADC (uint8_t arg)
 {
+    uint16_t sum = a + arg + p.getCarry();
+    a = (uint8_t) sum;
+
     if (p.isDecimal())
     {
         // BCD mode
     }
+
+    p.setNegative (sum);
+    p.setZero     (sum);
+    p.setCarry    (sum);
 }
 
 
@@ -549,7 +570,7 @@ void Cpu::ANE()
 void Cpu::ARR() 
 {  
     NOP();
-}
+} 
 
 
 /*
@@ -581,55 +602,55 @@ void Cpu::ASL()
 }
 
 
-void Cpu::BCC() {  }
-void Cpu::BCS() {  }
-void Cpu::BEQ() {  }
-void Cpu::BIT() {  }
-void Cpu::BMI() {  }
-void Cpu::BNE() {  }
-void Cpu::BPL() {  }
-void Cpu::BRK() {  }
-void Cpu::BVC() {  }
-void Cpu::BVS() {  }
-void Cpu::CLC() {  }
-void Cpu::CLD() {  }
-void Cpu::CLI() {  }
-void Cpu::CLV() {  }
-void Cpu::CMP() {  }
-void Cpu::CPX() {  }
-void Cpu::CPY() {  }
-void Cpu::DCP() {  }
-void Cpu::DEC() {  }
-void Cpu::DEX() {  }
-void Cpu::DEY() {  }
-void Cpu::EOR() {  }
-void Cpu::INC() {  }
-void Cpu::INX() {  }
-void Cpu::INY() {  }
-void Cpu::ISC() {  }
-void Cpu::JAM() {  }
-void Cpu::JMP() {  }
-void Cpu::JSR() {  }
-void Cpu::LAS() {  }
-void Cpu::LAX() {  }
-void Cpu::LDA() {  }
-void Cpu::LDX() {  }
-void Cpu::LDY() {  }
-void Cpu::LSR() {  }
-void Cpu::LXA() {  }
-void Cpu::NOP() {  }
-void Cpu::ORA() {  }
-void Cpu::PHA() {  }
-void Cpu::PHP() {  }
-void Cpu::PLA() {  }
-void Cpu::PLP() {  }
-void Cpu::RLA() {  }
-void Cpu::ROL() {  }
-void Cpu::ROR() {  }
-void Cpu::RRA() {  }
-void Cpu::RTI() {  }
-void Cpu::RTS() {  }
-void Cpu::SAX() {  }
+void Cpu::BCC() { }
+void Cpu::BCS() { }
+void Cpu::BEQ() { }
+void Cpu::BIT() { }
+void Cpu::BMI() { }
+void Cpu::BNE() { }
+void Cpu::BPL() { }
+void Cpu::BRK() { }
+void Cpu::BVC() { }
+void Cpu::BVS() { }
+void Cpu::CLC() { }
+void Cpu::CLD() { }
+void Cpu::CLI() { }
+void Cpu::CLV() { }
+void Cpu::CMP() { }
+void Cpu::CPX() { }
+void Cpu::CPY() { }
+void Cpu::DCP() { }
+void Cpu::DEC() { }
+void Cpu::DEX() { }
+void Cpu::DEY() { }
+void Cpu::EOR() { }
+void Cpu::INC() { }
+void Cpu::INX() { }
+void Cpu::INY() { }
+void Cpu::ISC() { }
+void Cpu::JAM() { }
+void Cpu::JMP() { }
+void Cpu::JSR() { }
+void Cpu::LAS() { }
+void Cpu::LAX() { }
+void Cpu::LDA() { }
+void Cpu::LDX() { }
+void Cpu::LDY() { }
+void Cpu::LSR() { }
+void Cpu::LXA() { }
+void Cpu::NOP() { }
+void Cpu::ORA() { }
+void Cpu::PHA() { }
+void Cpu::PHP() { }
+void Cpu::PLA() { }
+void Cpu::PLP() { }
+void Cpu::RLA() { }
+void Cpu::ROL() { }
+void Cpu::ROR() { }
+void Cpu::RRA() { }
+void Cpu::RTI() { }
+void Cpu::RTS() { }
+void Cpu::SAX() { }
 
 
 /*
@@ -658,23 +679,23 @@ void Cpu::SBC()
     ADC(~data); 
 }
 
-void Cpu::SBX() {  }
-void Cpu::SEC() {  }
-void Cpu::SED() {  }
-void Cpu::SEI() {  }
-void Cpu::SHA() {  }
-void Cpu::SHY() {  }
-void Cpu::SHX() {  }
-void Cpu::SLO() {  }
-void Cpu::SRE() {  }
-void Cpu::STA() {  }
-void Cpu::STX() {  }
-void Cpu::STY() {  }
-void Cpu::TAS() {  }
-void Cpu::TAX() {  }
-void Cpu::TAY() {  }
-void Cpu::TSX() {  }
-void Cpu::TXA() {  }
-void Cpu::TXS() {  }
-void Cpu::TYA() {  }
-void Cpu::USBC() {  }
+void Cpu::SBX() { }
+void Cpu::SEC() { }
+void Cpu::SED() { }
+void Cpu::SEI() { }
+void Cpu::SHA() { }
+void Cpu::SHY() { }
+void Cpu::SHX() { }
+void Cpu::SLO() { }
+void Cpu::SRE() { }
+void Cpu::STA() { }
+void Cpu::STX() { }
+void Cpu::STY() { }
+void Cpu::TAS() { }
+void Cpu::TAX() { }
+void Cpu::TAY() { }
+void Cpu::TSX() { }
+void Cpu::TXA() { }
+void Cpu::TXS() { }
+void Cpu::TYA() { }
+void Cpu::USB() { }
