@@ -15,14 +15,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef STATUS_HPP
-#define STATUS_HPP
+#ifndef STATUS_H
+#define STATUS_H
 
 #include <cstdint>
 
-//
-// 6502 Status Register (SR) flags
-//
+/*
+    6502 Status Register (SR) flags
+*/
 
 class Status
 {
@@ -30,96 +30,117 @@ private:
 
     enum Flags : uint8_t
     {
-        Carry     = 1,      // P0 - (C)  - Carry flag  
-        Zero      = 1 << 1, // P1 - (Z)  - Zero
-        Interrupt = 1 << 2, // P2 - (I)  - Interrupt (IRQ disable)
-        Decimal   = 1 << 3, // P3 - (D)  - Decimal (use BCD for arithmetics)
-        Break     = 1 << 4, // P4 - (B)  - Break
-        Default   = 1 << 5, // P5 - (1)  - Ignored (always 1)
-        Overflow  = 1 << 6, // P6 - (V)  - Overflow
-        Negative  = 1 << 7  // P7 - (N)  - Negative
+        Carry     = 1 << 0,       
+        Zero      = 1 << 1, 
+        Interrupt = 1 << 2,
+        Decimal   = 1 << 3, 
+        Break     = 1 << 4, 
+        Default   = 1 << 5,
+        Overflow  = 1 << 6, 
+        Negative  = 1 << 7  
     };
 
-    uint8_t status = Status::Default;
+    /*
+        Status flags value
+    */
+    uint8_t status;
 
-    void setFlag(Status::Flags flag, bool value)
-    {
-        if (value) {
-            status |= flag;
-        } else {
-            status &= ~flag;
-        }
-    }
+    /*
+        Returns true if flag is set
+    */
+    bool isSet(Flags flag) const;
 
-    uint8_t getFlag(Status::Flags flag) const { 
-        return isSet(flag) ? 1 : 0;
-    }
+    /*
+        Set/Unset flag
+    */
+    void setFlag(Flags flag, bool value);
 
-    bool isSet(Flags flag) const {
-        return (status & flag) == flag;
-    }
+    /*
+        Get flag as integer value
+    */
+    uint8_t getFlag(Flags flag) const;
+
 
 public:
 
-    // Default constructor
-    Status() = default;
+    /*
+        Default constructor
+    */
+    Status();
 
-    // Implicit cast uint8_t to Status type
-    Status(uint8_t status) {
-        this -> status = status | Status::Default;
-    }
+    /*
+        Restore status from uint8_t
+    */
+    Status(uint8_t status);
 
-    // Implicit cast to uint8_t
-    operator uint8_t () const {
-        return this -> status;
-    }
-
-    bool isDecimal() const {
-        return isSet(Status::Decimal);
-    }
-
-    template<typename T>
+    /*
+        Set carry flag
+    */
+    template<typename T> 
     void setCarry(const T & value) {
-        setFlag(Status::Carry, value & 0x100);
+        setFlag(Flags::Carry, value & 0x100);
     }
 
-    template<typename T>
+    /*
+        Set Negative flag
+    */
+    template<typename T> 
     void setNegative(const T & value) {
-        setFlag(Status::Negative, value & 0x80);
+        setFlag(Flags::Negative, value & 0x80);
     }
 
-    template<typename T>
+    /*
+        Set Zero flag
+    */
+    template<typename T> 
     void setZero(const T & value) {
-        setFlag(Status::Zero, value == 0x00);
+        setFlag(Flags::Zero, value == 0x00);
     }
 
-    uint8_t getCarry() const {
-        return getFlag(Status::Carry);
-    }
+    /*
+        Returns Carry flag
+    */
+    uint8_t getCarry() const;
 
-    uint8_t getNegative() const {
-        return getFlag(Status::Negative);
-    }
+    /*
+        Returns Negative flag
+    */
+    uint8_t getNegative() const;
 
-    uint8_t getOverflow() const {
-        return getFlag(Status::Overflow);
-    }
+    /*
+        Returns Overflow flag
+    */
+    uint8_t getOverflow() const;
 
-    uint8_t getBreak() const {
-        return getFlag(Status::Break);
-    }
+    /*
+        Returns Break flag
+    */
+    uint8_t getBreak() const;
 
-    uint8_t getInterrupt() const {
-        return getFlag(Status::Interrupt);
-    }
+    /*
+        Returns Interrupt flag
+    */
+    uint8_t getInterrupt() const;
 
-    uint8_t getDecimal() const {
-        return getFlag(Status::Decimal);
-    }
+    /*
+        Returns Decimal flag
+    */
+    uint8_t getDecimal() const;
 
-    uint8_t getZero() const {
-        return getFlag(Status::Zero);
-    }
+    /*
+        Returns Zero flag
+    */
+    uint8_t getZero() const;
+
+    /*
+        Returns true if Decimal flag is set
+    */
+    bool isDecimal() const;
+
+    /*
+        Explicit cast to uint8_t
+    */
+    operator uint8_t() const;
 };
 
 #endif

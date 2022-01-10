@@ -49,7 +49,7 @@ public:
     template<typename T>
     void write(uint16_t address, T data)
     {
-        bus -> write(address, (uint8_t) data);
+        bus -> write(address, (uint8_t) 0x00FF & data);
     }
 
 
@@ -592,13 +592,14 @@ void Cpu::ARR()
 
 void Cpu::ASL() 
 {  
-    uint16_t data = imp -> read(op) << 1;
+    uint16_t data  = imp -> read(op);
+    uint16_t shift = data << 1;
 
-    p.setNegative (data);
-    p.setZero     (data);
-    p.setCarry    (data);
+    p.setNegative (shift);
+    p.setZero     (shift);
+    p.setCarry    (shift);
 
-    imp -> write(pc, data);
+    imp -> write(op, shift);
 }
 
 
