@@ -20,13 +20,11 @@
 #include "fmt/core.h"
 #include "fmt/color.h"
 
-uint8_t Bus::read (uint16_t index) const 
-{
+uint8_t Bus::read (uint16_t index) const {
     return ram[index];
 }
 
-void Bus::write (uint16_t index, uint8_t data) 
-{
+void Bus::write (uint16_t index, uint8_t data) {
     ram[index] = data;
 }
 

@@ -25,21 +25,23 @@
 
 #include "status.h"
 
+class Cmd;
+class Log;
+class Map;
+class Mem;
+class Bus;
+
 //
 // MOS Technology 6502
 //
 
-class Map;
-class Log;
-class Bus;
-
 class Cpu
 {
 private:
-    class Imp;
 
-    friend class Map;
+    friend class Cmd;
     friend class Log;
+    friend class Map;
 
 private:
     //
@@ -128,12 +130,15 @@ private:
     // Includes all common/undocumented instructions
     std::unique_ptr<Map> map;
 
-    // Other private implementations
-    std::unique_ptr<Imp> imp;
+    // Addressing memory
+    std::unique_ptr<Mem> mem;
 
     // Disassembler
     std::unique_ptr<Log> log;
 
+    // Current processed command
+    const Cmd * cmd;
+    
     //
     // Addressing modes
     //
@@ -235,6 +240,15 @@ private:
     void TXS();  // Transfer Index X to Stack Pointer
     void TYA();  // Transfer Index Y to Accumulator
     void USB();  // USBC operation and NOP
+
+private:
+
+    // Read data from memory/accumulator
+    uint8_t read() const;
+
+    // Write data to memory or accumulator
+    void write (uint8_t data);
+
 
 public:
     Cpu(std::shared_ptr<Bus> bus);

@@ -16,107 +16,12 @@
  */
 
 #include "log.h"
+#include "cmd.h"
 
 #include "cpu/cpu.h"
 #include "cpu/map.h"
+#include "cpu/mem.h"
 #include "bus/bus.h"
-
-class Cpu::Imp
-{
-private:
-    // Bus communication interface
-    // Interact with each other devices i.e. RAM, APU, PPU etc.
-    std::shared_ptr<Bus> bus;
-
-public:
-
-    Imp(std::shared_ptr<Bus> bus) : bus(bus)
-    { }
-
-
-    /*
-        Read byte from bus
-    */
-    uint8_t read(uint16_t index)
-    {
-        return bus -> read(index);
-    }
-
-
-    /*
-        Write byte to bus without carry
-    */
-    template<typename T>
-    void write(uint16_t address, T data)
-    {
-        bus -> write(address, (uint8_t) 0x00FF & data);
-    }
-
-
-    /* 
-        Read 2-bytes address from memory direct 
-        Shift program counter twice
-    */
-
-    uint16_t direct(uint16_t & pc)
-    {
-        uint16_t lo = read(pc++);
-        uint16_t hi = read(pc++);
-
-        return (hi << 8) | lo;
-    }
-
-
-    /* 
-        Read 2-bytes address from memory indirect 
-        Shift program counter twice
-    */
-
-    uint16_t indirect(uint16_t & pc)
-    {
-        auto index = direct(pc);
-        return direct(index);
-    }
-
-
-    /*       
-        Absolute mode
-    */
-
-    uint16_t abs(uint16_t & pc, uint8_t rg = 0x00)
-    {
-        auto index = direct(pc);
-        return 0xFFFF & (index + rg);      
-    } 
-
-
-    /*
-        Zeropage mode
-    */
-
-    uint8_t zpg(uint16_t & pc, uint8_t rg = 0x00)
-    {
-        auto lo = read(pc++);
-
-        // Zeropage only
-        return 0x00FF & (lo + rg);
-    }
-
-
-    /*
-        Zeropage indexed indirect
-    */
-
-    uint16_t indexed(uint16_t & pc, uint8_t rg = 0x00)
-    {
-        uint16_t zp = zpg(pc, rg);
-
-        uint16_t lo = read(0x00FF & zp++);
-        uint16_t hi = read(0x00FF & zp++);
-
-        return (hi << 8) | lo;
-    }
-};
 
 
 /*
@@ -126,8 +31,8 @@ public:
 Cpu::Cpu(std::shared_ptr<Bus> bus)
 {
     map = std::make_unique<Map>();
-    imp = std::make_unique<Imp>(bus);
     log = std::make_unique<Log>(bus);
+    mem = std::make_unique<Mem>(bus);
 }
 
 
@@ -135,6 +40,31 @@ Cpu::Cpu(std::shared_ptr<Bus> bus)
     Default destructor
 */
 Cpu::~Cpu() = default;
+
+
+/*
+    Read data from memory/accumulator
+*/
+uint8_t Cpu::read() const
+{
+    if (cmd -> isAcc())
+        return a;
+
+    return mem -> read(pc);
+}
+
+
+/* 
+    Write data to memory or accumulator 
+*/
+void Cpu::write (uint8_t data)
+{
+    if (cmd -> isAcc()) {
+        a = data;
+    } else {
+        mem -> write(pc, data);
+    }
+}
 
 
 /*
@@ -146,8 +76,10 @@ void Cpu::clock ()
 {
     auto temp = pc;
 
-    auto code = imp -> read(pc++);  
+    auto code = mem -> read(pc++);  
     auto oper = map -> getCommand(code);
+
+    cmd = &oper;
 
     // Execute command and returns programm cycles
     oper.execute(this);
@@ -155,6 +87,7 @@ void Cpu::clock ()
     // Disassembled output
     log -> step(temp, oper, this);
 }
+
 
 /*
     Reset CPU and clear all registers & flags
@@ -204,7 +137,7 @@ void Cpu::ABS ()
     // OPC $LLHH	
     // Operand is address $HHLL
 
-    op = imp -> abs(pc);
+    op = mem -> abs(pc);
 }
 
 
@@ -229,7 +162,7 @@ void Cpu::ABSX ()
     // Operand is address; 
     // Effective address is address incremented by X with carry
 
-    op = imp -> abs(pc, x);
+    op = mem -> abs(pc, x);
 }
 
 
@@ -239,7 +172,7 @@ void Cpu::ABSY ()
     // Operand is address; 
     // Effective address is address incremented by Y with carry
 
-    op = imp -> abs(pc, y);
+    op = mem -> abs(pc, y);
 }
 
 
@@ -258,7 +191,7 @@ void Cpu::ZPG ()
     // OPC $LL
     // Operand is zeropage address (hi-byte is zero, address = $00LL)
 
-    op = imp -> zpg(pc);
+    op = mem -> zpg(pc);
 }
 
 
@@ -282,7 +215,7 @@ void Cpu::ZPGX ()
     // Operand is zeropage address; 
     // Effective address is address incremented by X without carry
 
-    op = imp -> zpg(pc, x);
+    op = mem -> zpg(pc, x);
 }
 
 
@@ -292,7 +225,7 @@ void Cpu::ZPGY ()
     // Operand is zeropage address; 
     // Effective address is address incremented by Y without carry
 
-    op = imp -> zpg(pc, y);
+    op = mem -> zpg(pc, y);
 }
 
 
@@ -345,7 +278,7 @@ void Cpu::IND ()
     // Operand is address; 
     // Effective address is contents of word at address: C.w($HHLL)
 
-    op = imp -> indirect(pc);
+    op = mem -> indirect(pc);
 }
 
 
@@ -366,7 +299,7 @@ void Cpu::INDX ()
     // Operand is zeropage address; 
     // Effective address is word in (LL + X, LL + X + 1), inc. without carry: C.w($00LL + X)
 
-    op = imp -> indexed(pc, x);
+    op = mem -> indexed(pc, x);
 }
 
 
@@ -389,7 +322,7 @@ void Cpu::INDY ()
     // Operand is zeropage address; 
     // Effective address is word in (LL, LL + 1) incremented by Y with carry: C.w($00LL) + Y
 
-    auto index = imp -> indexed(pc);
+    auto index = mem -> indexed(pc);
     op = 0x00FF & (index + y);
 }
 
@@ -450,7 +383,7 @@ void Cpu::ADC (uint8_t arg)
 
 void Cpu::ADC() 
 { 
-    auto data = imp -> read(pc);
+    auto data = read();
     ADC(data); 
 }
 
@@ -514,7 +447,7 @@ void Cpu::ANC()
 
 void Cpu::AND() 
 { 
-    a &= imp -> read(op);
+    a &= read();
 
     p.setZero(a);
     p.setNegative(a);
@@ -591,15 +524,15 @@ void Cpu::ARR()
 */
 
 void Cpu::ASL() 
-{  
-    uint16_t data  = imp -> read(op);
+{
+    uint16_t data  = read();
     uint16_t shift = data << 1;
 
     p.setNegative (shift);
     p.setZero     (shift);
     p.setCarry    (shift);
 
-    imp -> write(op, shift);
+    write(shift);
 }
 
 
@@ -676,7 +609,7 @@ void Cpu::SAX() { }
 
 void Cpu::SBC() 
 { 
-    auto data = imp -> read(op);
+    auto data = read();
     ADC(~data); 
 }
 

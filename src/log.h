@@ -22,9 +22,9 @@
 #include <memory>
 #include <string>
 
-class  Cpu;
-class  Bus; 
-struct Cmd;
+class Cpu;
+class Bus; 
+class Cmd;
 
 class Log
 {

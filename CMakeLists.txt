@@ -25,6 +25,7 @@ target_sources(emulator PRIVATE
     "src/bus/bus.cc"
     "src/cpu/cpu.cc"
     "src/cpu/map.cc"
+    "src/cpu/mem.cc"
     "src/cpu/status.cc"
     "src/log.cc"
     "src/main.cc"

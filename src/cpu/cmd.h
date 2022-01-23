@@ -23,8 +23,10 @@
 
 #include "cpu.h"
 
-struct Cmd
+class Cmd
 {
+public:
+
     /*
         Command name (BRK, ORA etc)
     */
@@ -50,7 +52,7 @@ struct Cmd
     /*
         Execute command
     */
-    uint8_t execute(Cpu * cpu)
+    uint8_t execute(Cpu * cpu) const
     {
         // Switch address mode
         (cpu->*mode)();
@@ -59,7 +61,22 @@ struct Cmd
         // with addition cycles depends on memory mode
         (cpu->*code)();
 
-        return 0x00;
+        // ~
+        return cycles;
+    }
+
+    /*
+        Command is Accumulator adressing
+    */
+    bool isAcc() const {
+        return mode == &Cpu::ACC;
+    };
+
+    /*
+        Command is relation adressing
+    */
+    bool isRel() const {
+        return mode == &Cpu::REL;
     }
 };
 
