@@ -532,7 +532,7 @@ void Cpu::ASL()
     p.setZero     (shift);
     p.setCarry    (shift);
 
-    write(shift);
+    write((uint8_t) shift);
 }
 
 
