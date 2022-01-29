@@ -50,7 +50,7 @@ uint8_t Cpu::read() const
     if (cmd -> isAcc())
         return a;
 
-    return mem -> read(pc);
+    return mem -> read(op);
 }
 
 
@@ -62,7 +62,7 @@ void Cpu::write (uint8_t data)
     if (cmd -> isAcc()) {
         a = data;
     } else {
-        mem -> write(pc, data);
+        mem -> write(op, data);
     }
 }
 
@@ -536,23 +536,403 @@ void Cpu::ASL()
 }
 
 
-void Cpu::BCC() { }
-void Cpu::BCS() { }
-void Cpu::BEQ() { }
-void Cpu::BIT() { }
-void Cpu::BMI() { }
-void Cpu::BNE() { }
-void Cpu::BPL() { }
+/*
+    Branch 
+
+    Branch offsets are signed 8-bit values, -128 ... +127, 
+    negative offsets in two's complement.
+
+    Page transitions may occur and add an extra cycle to the exucution.
+*/
+
+void Cpu::BRA()
+{
+    pc += (int8_t) read();
+}
+
+
+/*
+    BCC
+    Branch on Carry Clear
+
+    branch on C = 0                       N Z C I D V
+                                          - - - - - - 
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | relative   | BCC oper  | 90  | 2     | 2**    |
+    +------------+-----------+-----+-------+--------+
+*/
+
+void Cpu::BCC() 
+{
+    if (!p.isCarry())
+    {
+        BRA();
+    }
+}
+
+
+/*
+    BCC
+    Branch on Carry Set
+
+    branch on C = 1                       N Z C I D V
+                                          - - - - - - 
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | relative   | BCS oper  | B0  | 2     | 2**    |
+    +------------+-----------+-----+-------+--------+
+*/
+
+void Cpu::BCS() 
+{
+    if (p.isCarry())
+    {
+        BRA();
+    }
+}
+
+
+/*
+    BCC
+    Branch on Result Zero
+
+    branch on Z = 1                       N Z C I D V
+                                          - - - - - - 
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | relative   | BEQ oper  | F0  | 2     | 2**    |
+    +------------+-----------+-----+-------+--------+
+*/
+
+void Cpu::BEQ() 
+{ 
+    if (p.isZero())
+    {
+        BRA();
+    }
+}
+
+
+/*
+    BIT
+    Test Bits in Memory with Accumulator
+
+    bits 7 and 6 of operand are transfered to bit 7 and 6 of SR (N,V);
+    the zero-flag is set to the result of operand AND accumulator.
+
+    A AND M, M7 -> N, M6 -> V             N Z C I D V
+                                         M7 + - - - M6
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | zeropage   | BIT oper  | 24  | 2     | 3      |
+    | absolute   | BIT oper  | 2C  | 3     | 4      |
+    +------------+-----------+-----+-------+--------+
+
+*/
+
+void Cpu::BIT() 
+{
+    auto data = read();
+
+    p.setNegative ((bool) (data & 0x80));
+    p.setOverflow ((bool) (data & 0x40));
+    p.setZero     ( data & a );
+}
+
+
+/*
+    BMI
+    Branch on Result Minus
+
+    branch on N = 1                       N Z C I D V
+                                          - - - - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | relative   | BMI oper  | 30  | 2     | 2**    |
+    +------------+-----------+-----+-------+--------+
+*/
+
+void Cpu::BMI() 
+{
+    if (p.isNegative())
+    {
+        BRA();
+    }
+}
+
+
+/*
+    BNE
+    Branch on Result not Zero
+
+    branch on Z = 0                       N Z C I D V
+                                          - - - - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | relative   | BNE oper  | D0  | 2     | 2**    |
+    +------------+-----------+-----+-------+--------+
+*/
+
+void Cpu::BNE() 
+{
+    if (!p.isZero())
+    {
+        BRA();
+    }
+}
+
+
+/*
+    BPL
+    Branch on Result Plus
+
+    branch on N = 0                       N Z C I D V
+                                          - - - - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | relative   | BPL oper  | 10  | 2     | 2**    |
+    +------------+-----------+-----+-------+--------+
+*/
+
+void Cpu::BPL() 
+{
+    if (!p.isNegative())
+    {
+        BRA();
+    }
+}
+
+
+/*
+    BRK
+    Force Break
+
+    BRK initiates a software interrupt similar to a hardware
+    interrupt (IRQ). The return address pushed to the stack is
+    PC+2, providing an extra byte of spacing for a break mark
+    (identifying a reason for the break.)
+    The status register will be pushed to the stack with the break
+    flag set to 1. However, when retrieved during RTI or by a PLP
+    instruction, the break flag will be ignored.
+    The interrupt disable flag is not set automatically.
+*/
+
 void Cpu::BRK() { }
-void Cpu::BVC() { }
-void Cpu::BVS() { }
-void Cpu::CLC() { }
-void Cpu::CLD() { }
-void Cpu::CLI() { }
-void Cpu::CLV() { }
-void Cpu::CMP() { }
-void Cpu::CPX() { }
-void Cpu::CPY() { }
+
+
+/*
+    BVC
+    Branch on Overflow Clear
+
+    branch on V = 0                       N Z C I D V
+                                          - - - - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | relative   | BVC oper  | 50  | 2     | 2**    |
+    +------------+-----------+-----+-------+--------+
+*/
+
+void Cpu::BVC() 
+{ 
+    if (!p.isOverflow())
+    {
+        BRA();
+    }
+}
+
+
+/*
+    BVS
+    Branch on Overflow set
+
+    branch on V = 1                       N Z C I D V
+                                          - - - - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | relative   | BVS oper  | 70  | 2     | 2**    |
+    +------------+-----------+-----+-------+--------+
+*/
+
+void Cpu::BVS() 
+{ 
+    if (p.isOverflow())
+    {
+        BRA();
+    }
+}
+
+
+/*
+    CLC
+    Clear Carry Flag
+
+    0 -> C                                N Z C I D V
+                                          - - 0 - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | CLC       | 18  | 1     | 2      |
+    +------------+-----------+-----+-------+--------+
+*/
+
+void Cpu::CLC() 
+{ 
+    p.setCarry(false);
+}
+
+
+/*
+    CLD
+    Clear Decimal Mode
+
+    0 -> D                                N Z C I D V
+                                          - - - - 0 -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | CLD       | D8  | 1     | 2      |
+    +------------+-----------+-----+-------+--------+
+*/
+
+void Cpu::CLD() 
+{ 
+    p.setDecimal(false);
+}
+
+
+/*
+    CLI
+    Clear Interrupt Disable Bit
+
+    0 -> I                               N Z C I D V
+                                         - - - 0 - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | CLI       | 58  | 1     | 2      |
+    +------------+-----------+-----+-------+--------+
+*/
+
+void Cpu::CLI() 
+{ 
+    p.setInterrupt(false);
+}
+
+
+/*
+    CLV
+    Clear Overflow Flag
+
+    0 -> V                               N Z C I D V
+                                         - - - - - 0
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | CLV       | B8  | 1     | 2      |
+    +------------+-----------+-----+-------+--------+
+*/
+
+void Cpu::CLV() 
+{ 
+    p.setOverflow(false);
+}
+
+
+/*
+    Compare memory and argument.
+
+    Arg < Mem  ->  N=1, Z=0, C=0
+    Arg = Mem  ->  N=0, Z=1, C=1
+    Arg > Mem  ->  N=0, Z=0, C=1
+*/
+
+void Cpu::CMP(uint8_t x) 
+{ 
+    auto data = read();
+
+    p.setNegative ( data >  x );
+    p.setZero     ( data == x );
+    p.setCarry    ( data <= x );
+}
+
+
+/*
+    CMP
+    Compare Memory with Accumulator
+
+    A - M                                      N Z C I D V
+                                               + + + - - -
+    +--------------+--------------+-----+-------+--------+
+    | addressing   | assembler    | opc | bytes | cycles |
+    +--------------+--------------+-----+-------+--------+
+    | immediate    | CMP #oper    | C9  | 2     | 2      |
+    | zeropage     | CMP oper     | C5  | 2     | 3      |
+    | zeropage,X   | CMP oper,X   | D5  | 2     | 4      |
+    | absolute     | CMP oper     | CD  | 3     | 4      |
+    | absolute,X   | CMP oper,X   | DD  | 3     | 4*     |
+    | absolute,Y   | CMP oper,Y   | D9  | 3     | 4*     |
+    | (indirect,X) | CMP (oper,X) | C1  | 2     | 6      |
+    | (indirect),Y | CMP (oper),Y | D1  | 2     | 5*     |
+    +--------------+--------------+-----+-------+--------+
+*/
+
+void Cpu::CMP() 
+{ 
+    CMP(a);
+}
+
+
+/*
+    CPX
+    Compare Memory and Index X
+
+    X - M                                N Z C I D V
+                                         + + + - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | immediate  | CPX #oper | E0  | 2     | 2      |
+    | zeropage   | CPX oper  | E4  | 2     | 3      |
+    | absolute   | CPX oper  | EC  | 3     | 4      |
+    +------------+-----------+-----+-------+--------+
+*/
+
+void Cpu::CPX() 
+{ 
+    CMP(x); 
+}
+
+
+/*
+    CPY
+    Compare Memory and Index Y
+
+    Y - M                                 N Z C I D V
+                                          + + + - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | immediate  | CPY #oper | C0  | 2     | 2      |
+    | zeropage   | CPY oper  | C4  | 2     | 3      |
+    | absolute   | CPY oper  | CC  | 3     | 4      |
+    +------------+-----------+-----+-------+--------+
+*/
+
+void Cpu::CPY() 
+{ 
+    CMP(y);
+}
+
 void Cpu::DCP() { }
 void Cpu::DEC() { }
 void Cpu::DEX() { }

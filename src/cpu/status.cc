@@ -63,6 +63,62 @@ bool Status::isDecimal() const {
 }
 
 /*
+    Returns true if Carry flag is set
+*/
+bool Status::isCarry() const {
+    return isSet(Flags::Carry);
+}
+
+/*
+    Returns true if Zero flag is set
+*/
+bool Status::isZero() const {
+    return isSet(Flags::Zero);
+}
+
+/*
+    Returns true if Negative flag is set
+*/
+bool Status::isNegative() const {
+    return isSet(Flags::Negative);
+}
+
+/*
+    Returns true if Overflow flag is set
+*/
+bool Status::isOverflow() const {
+    return isSet(Flags::Overflow);
+}
+
+/*
+    Set/Unset Negative flag
+*/
+void Status::setNegative(bool isSet) {
+    setFlag(Flags::Negative, isSet);
+}
+
+/*
+    Set/Unset Negative flag
+*/
+void Status::setOverflow(bool isSet) {
+    setFlag(Flags::Overflow, isSet);
+}
+
+/*
+    Set/Unset Decimal flag
+*/
+void Status::setDecimal(bool isSet) {
+    setFlag(Flags::Decimal, isSet);
+}
+
+/*
+    Set/Unset Interrupt flag
+*/
+void Status::setInterrupt(bool isSet) {
+    setFlag(Flags::Interrupt, isSet);
+}
+
+/*
     Returns Carry flag
 */
 uint8_t Status::getCarry() const {

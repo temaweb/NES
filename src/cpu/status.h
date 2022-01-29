@@ -74,7 +74,7 @@ public:
     Status(uint8_t status);
 
     /*
-        Set carry flag
+        Test Carry flag by value
     */
     template<typename T> 
     void setCarry(const T & value) {
@@ -82,7 +82,7 @@ public:
     }
 
     /*
-        Set Negative flag
+        Test Negative flag by value
     */
     template<typename T> 
     void setNegative(const T & value) {
@@ -90,12 +90,32 @@ public:
     }
 
     /*
-        Set Zero flag
+        Set/Unset Negative flag
+    */
+    void setNegative(bool isSet);
+
+    /*
+        Test Zero flag by value
     */
     template<typename T> 
     void setZero(const T & value) {
         setFlag(Flags::Zero, value == 0x00);
     }
+
+    /*
+        Set/Unset Overflow flag
+    */
+    void setOverflow(bool isSet);
+
+    /*
+        Set/Unset Decimal flag
+    */
+    void setDecimal(bool isSet);
+
+    /*
+        Set/Unset Interrupt flag
+    */
+    void setInterrupt(bool isSet);
 
     /*
         Returns Carry flag
@@ -136,6 +156,26 @@ public:
         Returns true if Decimal flag is set
     */
     bool isDecimal() const;
+
+    /*
+        Returns true if Carry flag is set
+    */
+    bool isCarry() const;
+
+    /*
+        Returns true if Negative flag is set
+    */
+    bool isNegative() const;
+
+    /*
+        Returns true if Overflow flag is set
+    */
+    bool isOverflow() const;
+
+    /*
+        Returns true if Carry flag is set
+    */
+    bool isZero() const;
 
     /*
         Explicit cast to uint8_t

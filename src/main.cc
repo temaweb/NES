@@ -16,6 +16,7 @@
  */
 
 #include <memory>
+#include <iostream>
 
 #include "log.h"
 
