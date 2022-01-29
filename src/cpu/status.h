@@ -82,6 +82,11 @@ public:
     }
 
     /*
+        Set/Unset Carry flag
+    */
+    void setCarry(bool isSet);
+
+    /*
         Test Negative flag by value
     */
     template<typename T> 

@@ -91,6 +91,13 @@ bool Status::isOverflow() const {
 }
 
 /*
+    Set/Unset Carry flag
+*/
+void Status::setCarry(bool isSet) {
+    setFlag(Flags::Carry, isSet);
+}
+
+/*
     Set/Unset Negative flag
 */
 void Status::setNegative(bool isSet) {

@@ -856,13 +856,13 @@ void Cpu::CLV()
     Arg > Mem  ->  N=0, Z=0, C=1
 */
 
-void Cpu::CMP(uint8_t x) 
+void Cpu::CMP(uint8_t arg) 
 { 
     auto data = read();
 
-    p.setNegative ( data >  x );
-    p.setZero     ( data == x );
-    p.setCarry    ( data <= x );
+    p.setNegative ( data >  arg );
+    p.setZero     ( data == arg );
+    p.setCarry    ( data <= arg );
 }
 
 
