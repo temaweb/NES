@@ -346,6 +346,24 @@ void Cpu::REL ()
 
 
 /*
+    Add Arg to Accumulator with Carry
+*/
+void Cpu::ADC (uint8_t arg)
+{
+    uint16_t sum = a + arg + p.getCarry();
+    a = (uint8_t) sum;
+
+    if (p.isDecimal())
+    {
+        // BCD mode
+    }
+
+    p.setNegative (sum);
+    p.setZero     (sum);
+    p.setCarry    (sum);
+}
+
+/*
     ADC
     Add Memory to Accumulator with Carry
  
@@ -364,23 +382,6 @@ void Cpu::REL ()
     | (indirect),Y | ADC (oper),Y | 71  | 2     | 5*     |
     +--------------+--------------+-----+-------+--------+
 */
-
-void Cpu::ADC (uint8_t arg)
-{
-    uint16_t sum = a + arg + p.getCarry();
-    a = (uint8_t) sum;
-
-    if (p.isDecimal())
-    {
-        // BCD mode
-    }
-
-    p.setNegative (sum);
-    p.setZero     (sum);
-    p.setCarry    (sum);
-}
-
-
 void Cpu::ADC() 
 { 
     auto data = read();
@@ -400,7 +401,6 @@ void Cpu::ADC()
     | immediate  | ALR #oper | 4B  | 2     | 2      |
     +------------+-----------+-----+-------+--------+
 */
-
 void Cpu::ALR() 
 {
     NOP(); 
@@ -419,7 +419,6 @@ void Cpu::ALR()
     | immediate  | ANC #oper | 0B  | 2     | 2      |
     +------------+-----------+-----+-------+--------+
 */
-
 void Cpu::ANC() 
 { 
     NOP(); 
@@ -444,7 +443,6 @@ void Cpu::ANC()
     | (indirect),Y | AND (oper),Y | 31  | 2     | 5*     |
     +--------------+--------------+-----+-------+--------+
 */
-
 void Cpu::AND() 
 { 
     a &= read();
@@ -476,7 +474,6 @@ void Cpu::AND()
     | immediate  | ANE #oper | 8B  | 2     | 2      |
     +------------+-----------+-----+-------+--------+    
 */
-
 void Cpu::ANE() 
 {
     NOP();
@@ -499,7 +496,6 @@ void Cpu::ANE()
     | immediate  | ARR #oper | 6B  | 2     | 2      |
     +------------+-----------+-----+-------+--------+
 */
-
 void Cpu::ARR() 
 {  
     NOP();
@@ -522,7 +518,6 @@ void Cpu::ARR()
     | absolute,X  | ASL oper,X | 1E  | 3     | 7      |
     +-------------+------------+-----+-------+--------+
 */
-
 void Cpu::ASL() 
 {
     uint16_t data  = read();
@@ -544,7 +539,6 @@ void Cpu::ASL()
 
     Page transitions may occur and add an extra cycle to the exucution.
 */
-
 void Cpu::BRA()
 {
     pc += (int8_t) read();
@@ -563,7 +557,6 @@ void Cpu::BRA()
     | relative   | BCC oper  | 90  | 2     | 2**    |
     +------------+-----------+-----+-------+--------+
 */
-
 void Cpu::BCC() 
 {
     if (!p.isCarry())
@@ -585,7 +578,6 @@ void Cpu::BCC()
     | relative   | BCS oper  | B0  | 2     | 2**    |
     +------------+-----------+-----+-------+--------+
 */
-
 void Cpu::BCS() 
 {
     if (p.isCarry())
@@ -607,7 +599,6 @@ void Cpu::BCS()
     | relative   | BEQ oper  | F0  | 2     | 2**    |
     +------------+-----------+-----+-------+--------+
 */
-
 void Cpu::BEQ() 
 { 
     if (p.isZero())
@@ -634,7 +625,6 @@ void Cpu::BEQ()
     +------------+-----------+-----+-------+--------+
 
 */
-
 void Cpu::BIT() 
 {
     auto data = read();
@@ -657,7 +647,6 @@ void Cpu::BIT()
     | relative   | BMI oper  | 30  | 2     | 2**    |
     +------------+-----------+-----+-------+--------+
 */
-
 void Cpu::BMI() 
 {
     if (p.isNegative())
@@ -679,7 +668,6 @@ void Cpu::BMI()
     | relative   | BNE oper  | D0  | 2     | 2**    |
     +------------+-----------+-----+-------+--------+
 */
-
 void Cpu::BNE() 
 {
     if (!p.isZero())
@@ -701,7 +689,6 @@ void Cpu::BNE()
     | relative   | BPL oper  | 10  | 2     | 2**    |
     +------------+-----------+-----+-------+--------+
 */
-
 void Cpu::BPL() 
 {
     if (!p.isNegative())
@@ -724,7 +711,6 @@ void Cpu::BPL()
     instruction, the break flag will be ignored.
     The interrupt disable flag is not set automatically.
 */
-
 void Cpu::BRK() { }
 
 
@@ -740,7 +726,6 @@ void Cpu::BRK() { }
     | relative   | BVC oper  | 50  | 2     | 2**    |
     +------------+-----------+-----+-------+--------+
 */
-
 void Cpu::BVC() 
 { 
     if (!p.isOverflow())
@@ -762,7 +747,6 @@ void Cpu::BVC()
     | relative   | BVS oper  | 70  | 2     | 2**    |
     +------------+-----------+-----+-------+--------+
 */
-
 void Cpu::BVS() 
 { 
     if (p.isOverflow())
@@ -784,7 +768,6 @@ void Cpu::BVS()
     | implied    | CLC       | 18  | 1     | 2      |
     +------------+-----------+-----+-------+--------+
 */
-
 void Cpu::CLC() 
 { 
     p.setCarry(false);
@@ -803,7 +786,6 @@ void Cpu::CLC()
     | implied    | CLD       | D8  | 1     | 2      |
     +------------+-----------+-----+-------+--------+
 */
-
 void Cpu::CLD() 
 { 
     p.setDecimal(false);
@@ -822,7 +804,6 @@ void Cpu::CLD()
     | implied    | CLI       | 58  | 1     | 2      |
     +------------+-----------+-----+-------+--------+
 */
-
 void Cpu::CLI() 
 { 
     p.setInterrupt(false);
@@ -841,7 +822,6 @@ void Cpu::CLI()
     | implied    | CLV       | B8  | 1     | 2      |
     +------------+-----------+-----+-------+--------+
 */
-
 void Cpu::CLV() 
 { 
     p.setOverflow(false);
@@ -855,7 +835,6 @@ void Cpu::CLV()
     Arg = Mem  ->  N=0, Z=1, C=1
     Arg > Mem  ->  N=0, Z=0, C=1
 */
-
 void Cpu::CMP(uint8_t arg) 
 { 
     auto data = read();
@@ -885,7 +864,6 @@ void Cpu::CMP(uint8_t arg)
     | (indirect),Y | CMP (oper),Y | D1  | 2     | 5*     |
     +--------------+--------------+-----+-------+--------+
 */
-
 void Cpu::CMP() 
 { 
     CMP(a);
@@ -906,7 +884,6 @@ void Cpu::CMP()
     | absolute   | CPX oper  | EC  | 3     | 4      |
     +------------+-----------+-----+-------+--------+
 */
-
 void Cpu::CPX() 
 { 
     CMP(x); 
@@ -927,37 +904,577 @@ void Cpu::CPX()
     | absolute   | CPY oper  | CC  | 3     | 4      |
     +------------+-----------+-----+-------+--------+
 */
-
 void Cpu::CPY() 
 { 
     CMP(y);
 }
 
-void Cpu::DCP() { }
-void Cpu::DEC() { }
-void Cpu::DEX() { }
-void Cpu::DEY() { }
-void Cpu::EOR() { }
-void Cpu::INC() { }
-void Cpu::INX() { }
-void Cpu::INY() { }
-void Cpu::ISC() { }
-void Cpu::JAM() { }
-void Cpu::JMP() { }
-void Cpu::JSR() { }
-void Cpu::LAS() { }
-void Cpu::LAX() { }
-void Cpu::LDA() { }
-void Cpu::LDX() { }
-void Cpu::LDY() { }
-void Cpu::LSR() { }
-void Cpu::LXA() { }
+
+/*
+    DCP (DCM)
+    DEC oper + CMP oper
+
+    M - 1 -> M, A - M                          N Z C I D V
+                                               + + + - - -
+    +--------------+--------------+-----+-------+--------+
+    |  addressing  |  assembler   | opc | bytes | cycles |
+    +--------------+--------------+-----+-------+--------+
+    | zeropage     | DCP oper     | C7  |     2 |      5 |
+    | zeropage,X   | DCP oper,X   | D7  |     2 |      6 |
+    | absolute     | DCP oper     | CF  |     3 |      6 |
+    | absolut,X    | DCP oper,X   | DF  |     3 |      7 |
+    | absolut,Y    | DCP oper,Y   | DB  |     3 |      7 |
+    | (indirect,X) | DCP (oper,X) | C3  |     2 |      8 |
+    | (indirect),Y | DCP (oper),Y | D3  |     2 |      8 |
+    +--------------+--------------+-----+-------+--------+
+*/
+void Cpu::DCP() 
+{ 
+    NOP();
+}
+
+
+/*
+    DEC
+    Decrement Memory by One
+
+    M - 1 -> M                             N Z C I D V
+                                           + + - - - -
+    +------------+------------+-----+-------+--------+
+    | addressing | assembler  | opc | bytes | cycles |
+    +------------+------------+-----+-------+--------+
+    | zeropage   | DEC oper   | C6  | 2     | 5      |
+    | zeropage,X | DEC oper,X | D6  | 2     | 6      |
+    | absolute   | DEC oper   | CE  | 3     | 6      |
+    | absolute,X | DEC oper,X | DE  | 3     | 7      |
+    +------------+------------+-----+-------+--------+
+*/
+void Cpu::DEC() 
+{ 
+    auto data = read() - 1;
+
+    p.setNegative (data);
+    p.setZero     (data);
+
+    write(data);
+}
+
+
+/*
+    DEX
+    Decrement Index X by One
+
+    X - 1 -> X                            N Z C I D V
+                                          + + - - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | DEX       | CA  | 1     | 2      |
+    +------------+-----------+-----+-------+--------+
+*/
+void Cpu::DEX() 
+{ 
+    x--;
+
+    p.setNegative (x);
+    p.setZero     (x);
+}
+
+
+/*
+    DEY
+    Decrement Index Y by One
+
+    Y - 1 -> Y                            N Z C I D V
+                                          + + - - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | DEY       | 88  | 1     | 2      |
+    +------------+-----------+-----+-------+--------+
+*/
+void Cpu::DEY() 
+{ 
+    y--;
+
+    p.setNegative (y);
+    p.setZero     (y); 
+}
+
+
+/*
+    EOR
+    Exclusive-OR Memory with Accumulator
+
+    A EOR M -> A                               N Z C I D V
+                                               + + - - - -
+    +--------------+--------------+-----+-------+--------+
+    |  addressing  |  assembler   | opc | bytes | cycles |
+    +--------------+--------------+-----+-------+--------+
+    | immediate    | EOR #oper    | 49  |     2 | 2      |
+    | zeropage     | EOR oper     | 45  |     2 | 3      |
+    | zeropage,X   | EOR oper,X   | 55  |     2 | 4      |
+    | absolute     | EOR oper     | 4D  |     3 | 4      |
+    | absolute,X   | EOR oper,X   | 5D  |     3 | 4*     |
+    | absolute,Y   | EOR oper,Y   | 59  |     3 | 4*     |
+    | (indirect,X) | EOR (oper,X) | 41  |     2 | 6      |
+    | (indirect),Y | EOR (oper),Y | 51  |     2 | 5*     |
+    +--------------+--------------+-----+-------+--------+
+*/
+void Cpu::EOR() 
+{ 
+    a ^= read();
+
+    p.setNegative (a);
+    p.setZero     (a);
+}
+
+
+/*
+    INC
+    Increment Memory by One
+
+    M + 1 -> M                             N Z C I D V
+                                           + + - - - -
+    +------------+------------+-----+-------+--------+
+    | addressing | assembler  | opc | bytes | cycles |
+    +------------+------------+-----+-------+--------+
+    | zeropage   | INC oper   | E6  |     2 |      5 |
+    | zeropage,X | INC oper,X | F6  |     2 |      6 |
+    | absolute   | INC oper   | EE  |     3 |      6 |
+    | absolute,X | INC oper,X | FE  |     3 |      7 |
+    +------------+------------+-----+-------+--------+
+*/
+void Cpu::INC() 
+{ 
+    auto data = read();
+
+    data++;
+
+    p.setNegative (data);
+    p.setZero     (data);
+
+    write(data);
+}
+
+
+/*
+    INX
+    Increment Index X by One
+
+    X + 1 -> X                            N Z C I D V
+                                          + + - - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | INX       | E8  |     1 |      2 |
+    +------------+-----------+-----+-------+--------+
+*/
+void Cpu::INX() 
+{ 
+    x++;
+
+    p.setNegative (x);
+    p.setZero     (x);
+}
+
+
+/*
+    INY
+    Increment Index Y by One
+
+    X + 1 -> X                            N Z C I D V
+                                          + + - - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | INY       | C8  |     1 |      2 |
+    +------------+-----------+-----+-------+--------+
+*/
+void Cpu::INY() 
+{ 
+    y++;
+
+    p.setNegative (y);
+    p.setZero     (y);
+}
+
+
+/*
+    ISC (ISB, INS)
+    INC oper + SBC oper
+
+    M + 1 -> M, A - M - C -> A                 N Z C I D V
+                                               + + + - - +
+    +--------------+--------------+-----+-------+--------+
+    | addressing   | assembler    | opc | bytes | cycles |
+    +--------------+--------------+-----+-------+--------+
+    | zeropage     | ISC oper     | E7  | 2     | 5      |
+    | zeropage,X   | ISC oper,X   | F7  | 2     | 6      |
+    | absolute     | ISC oper     | EF  | 3     | 6      |
+    | absolut,X    | ISC oper,X   | FF  | 3     | 7      |
+    | absolut,Y    | ISC oper,Y   | FB  | 3     | 7      |
+    | (indirect,X) | ISC (oper,X) | E3  | 2     | 8      |
+    | (indirect),Y | ISC (oper),Y | F3  | 2     | 4      |
+    +--------------+--------------+-----+-------+--------+
+*/
+void Cpu::ISC() 
+{ 
+    NOP();
+}
+
+
+/*
+    JAM (KIL, HLT)
+    These instructions freeze the CPU.
+
+    The processor will be trapped infinitely in T1 phase 
+    with $FF on the data bus. — Reset required.
+
+    Instruction codes: 02, 12, 22, 32, 42, 52, 62, 72, 92, B2, D2, F2
+*/
+void Cpu::JAM() 
+{ 
+    NOP();
+}
+
+
+/*
+    JMP
+    Jump to New Location
+
+    (PC+1) -> PCL
+    (PC+2) -> PCH                          N Z C I D V
+                                           - - - - - -
+    +------------+------------+-----+-------+--------+
+    | addressing | assembler  | opc | bytes | cycles |
+    +------------+------------+-----+-------+--------+
+    | absolute   | JMP oper   | 4C  | 3     | 3      |
+    | indirect   | JMP (oper) | 6C  | 3     | 5      |
+    +------------+------------+-----+-------+--------+
+*/
+void Cpu::JMP() 
+{ 
+    pc = op;
+}
+
+
+/*
+    JSR
+    Jump to New Location Saving Return Address
+
+    push (PC+2),
+    (PC+1) -> PCL
+    (PC+2) -> PCH                         N Z C I D V
+                                          - - - - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | absolute   | JSR oper  | 20  | 3     | 6      |
+    +------------+-----------+-----+-------+--------+
+*/
+void Cpu::JSR() 
+{ 
+    uint8_t lo = (0x00FF & pc);
+    uint8_t hi = (0xFF00 & pc) >> 8; 
+
+    mem -> write(s++, lo);
+    mem -> write(s++, hi);
+
+    JMP();
+}
+
+
+/*
+    LAS (LAR)
+    LDA/TSX oper
+
+    M AND SP -> A, X, SP                   N Z C I D V
+                                           + + - - - -
+    +------------+------------+-----+-------+--------+
+    | addressing | assembler  | opc | bytes | cycles |
+    +------------+------------+-----+-------+--------+
+    | absolut,Y  | LAS oper,Y | BB  | 3     | 4*     |
+    +------------+------------+-----+-------+--------+
+*/
+void Cpu::LAS() 
+{ 
+    NOP();
+}
+
+
+/*
+    LAX
+    LDA oper + LDX oper
+
+    M -> A -> X                                N Z C I D V
+                                               + + - - - -
+    +--------------+--------------+-----+-------+--------+
+    | addressing   | assembler    | opc | bytes | cycles |
+    +--------------+--------------+-----+-------+--------+
+    | zeropage     | LAX oper     | A7  | 2     | 3      |
+    | zeropage,Y   | LAX oper,Y   | B7  | 2     | 4      |
+    | absolute     | LAX oper     | AF  | 3     | 4      |
+    | absolut,Y    | LAX oper,Y   | BF  | 3     | 4*     |
+    | (indirect,X) | LAX (oper,X) | A3  | 2     | 6      |
+    | (indirect),Y | LAX (oper),Y | B3  | 2     | 5*     |
+    +--------------+--------------+-----+-------+--------+
+*/
+void Cpu::LAX() 
+{
+    NOP();
+}
+
+
+/*
+    LDA
+    Load Accumulator with Memory
+
+    M -> A                                     N Z C I D V
+                                               + + - - - -
+    +--------------+--------------+-----+-------+--------+
+    | addressing   | assembler    | opc | bytes | cycles |
+    +--------------+--------------+-----+-------+--------+
+    | immediate    | LDA #oper    | A9  | 2     | 2      |
+    | zeropage     | LDA oper     | A5  | 2     | 3      |
+    | zeropage,X   | LDA oper,X   | B5  | 2     | 4      |
+    | absolute     | LDA oper     | AD  | 3     | 4      |
+    | absolute,X   | LDA oper,X   | BD  | 3     | 4*     |
+    | absolute,Y   | LDA oper,Y   | B9  | 3     | 4*     |
+    | (indirect,X) | LDA (oper,X) | A1  | 2     | 6      |
+    | (indirect),Y | LDA (oper),Y | B1  | 2     | 5*     |
+    +--------------+--------------+-----+-------+--------+
+*/
+void Cpu::LDA() 
+{ 
+    a = read();
+
+    p.setNegative (a);
+    p.setZero     (a);
+}
+
+
+/*
+    LDX
+    Load Index X with Memory
+
+    M -> X                                 N Z C I D V
+                                           + + - - - -
+    +------------+------------+-----+-------+--------+
+    | addressing | assembler  | opc | bytes | cycles |
+    +------------+------------+-----+-------+--------+
+    | immediate  | LDX #oper  | A2  | 2     | 2      |
+    | zeropage   | LDX oper   | A6  | 2     | 3      |
+    | zeropage,Y | LDX oper,Y | B6  | 2     | 4      |
+    | absolute   | LDX oper   | AE  | 3     | 4      |
+    | absolute,Y | LDX oper,Y | BE  | 3     | 4*     |
+    +------------+------------+-----+-------+--------+
+*/
+void Cpu::LDX() 
+{ 
+    x = read();
+
+    p.setNegative (x);
+    p.setZero     (x);
+}
+
+
+/*
+    LDY
+    Load Index Y with Memory
+
+    M -> Y                                 N Z C I D V
+                                           + + - - - -
+    +------------+------------+-----+-------+--------+
+    | addressing | assembler  | opc | bytes | cycles |
+    +------------+------------+-----+-------+--------+
+    | immediate  | LDY #oper  | A0  | 2     | 2      |
+    | zeropage   | LDY oper   | A4  | 2     | 3      |
+    | zeropage,X | LDY oper,X | B4  | 2     | 4      |
+    | absolute   | LDY oper   | AC  | 3     | 4      |
+    | absolute,X | LDY oper,X | BC  | 3     | 4*     |
+    +------------+------------+-----+-------+--------+
+*/
+void Cpu::LDY() 
+{ 
+    y = read();
+
+    p.setNegative (y);
+    p.setZero     (y);
+}
+
+
+/*
+    LSR
+    Shift One Bit Right (Memory or Accumulator)
+
+    0 -> [76543210] -> C                    N Z C I D V
+                                            0 + + - - -
+    +-------------+------------+-----+-------+--------+
+    | addressing  | assembler  | opc | bytes | cycles |
+    +-------------+------------+-----+-------+--------+
+    | accumulator | LSR A      | 4A  | 1     | 2      |
+    | zeropage    | LSR oper   | 46  | 2     | 5      |
+    | zeropage,X  | LSR oper,X | 56  | 2     | 6      |
+    | absolute    | LSR oper   | 4E  | 3     | 6      |
+    | absolute,X  | LSR oper,X | 5E  | 3     | 7      |
+    +-------------+------------+-----+-------+--------+
+*/
+void Cpu::LSR() 
+{ 
+    uint8_t data = read() >> 1;
+
+    p.setZero     (data);
+    p.setCarry    (data);
+    p.setNegative (false);
+
+    write(data);
+}
+
+
+/*
+    LXA (LAX immediate)
+    Store * AND oper in A and X
+
+    Highly unstable, involves a 'magic' constant, see ANE
+
+    (A OR CONST) AND oper -> A -> X            N Z C I D V
+                                               + + - - - -
+    +------------+-----------+-----+-------+--------+----+
+    | addressing | assembler | opc | bytes | cycles |    |
+    +------------+-----------+-----+-------+--------+----+
+    | immediate  | LXA #oper | AB  | 2     | 2      | †† |
+    +------------+-----------+-----+-------+--------+----+
+*/
+void Cpu::LXA() 
+{
+    NOP();
+}
+
+
+/*
+    NOP
+    No Operation
+                                          N Z C I D V
+                                          - - - - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | NOP       | EA  | 1     | 2      |
+    +------------+-----------+-----+-------+--------+
+*/
 void Cpu::NOP() { }
-void Cpu::ORA() { }
-void Cpu::PHA() { }
-void Cpu::PHP() { }
-void Cpu::PLA() { }
-void Cpu::PLP() { }
+
+
+/*
+    ORA
+    OR Memory with Accumulator
+
+    A OR M -> A                                N Z C I D V
+                                               + + - - - -
+    +--------------+--------------+-----+-------+--------+
+    | addressing   | assembler    | opc | bytes | cycles |
+    +--------------+--------------+-----+-------+--------+
+    | immediate    | ORA #oper    | 09  | 2     | 2      |
+    | zeropage     | ORA oper     | 05  | 2     | 3      |
+    | zeropage,X   | ORA oper,X   | 15  | 2     | 4      |
+    | absolute     | ORA oper     | 0D  | 3     | 4      |
+    | absolute,X   | ORA oper,X   | 1D  | 3     | 4*     |
+    | absolute,Y   | ORA oper,Y   | 19  | 3     | 4*     |
+    | (indirect,X) | ORA (oper,X) | 01  | 2     | 6      |
+    | (indirect),Y | ORA (oper),Y | 11  | 2     | 5*     |
+    +--------------+--------------+-----+-------+--------+
+*/
+void Cpu::ORA() 
+{ 
+    a |= read();
+
+    p.setNegative (a);
+    p.setZero     (a);
+}
+
+
+/*
+    PHA
+    Push Accumulator on Stack
+
+    push A                                N Z C I D V
+                                          - - - - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | PHA       | 48  | 1     | 3      |
+    +------------+-----------+-----+-------+--------+
+*/
+void Cpu::PHA() 
+{ 
+    mem -> write(s++, a);
+}
+
+
+/*
+    PHP
+    Push Processor Status on Stack
+
+    The status register will be pushed with the break
+    flag and bit 5 set to 1.
+
+    push SR                               N Z C I D V
+                                          - - - - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | PHP       | 08  | 1     | 3      |
+    +------------+-----------+-----+-------+--------+
+*/
+void Cpu::PHP() 
+{ 
+    mem -> write(s++, p);
+}
+
+
+/*
+    PLA
+    Pull Accumulator from Stack
+
+    pull A                                N Z C I D V
+                                          + + - - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | PLA       | 68  | 1     | 4      |
+    +------------+-----------+-----+-------+--------+
+*/
+void Cpu::PLA() 
+{ 
+    a = mem -> read(s++);
+
+    p.setNegative (a);
+    p.setZero     (a);
+}
+
+
+/*
+    PLP
+    Pull Processor Status from Stack
+
+    The status register will be pulled with the break
+    flag and bit 5 ignored.
+
+    pull SR                               N Z C I D V
+                                          + + + + + +
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | PLP       | 28  | 1     | 4      |
+    +------------+-----------+-----+-------+--------+
+*/
+void Cpu::PLP() 
+{ 
+    p = mem -> read(s++);
+}
+
+
 void Cpu::RLA() { }
 void Cpu::ROL() { }
 void Cpu::ROR() { }
@@ -973,7 +1490,7 @@ void Cpu::SAX() { }
 
     A - M - ~C -> A                            N Z C I D V
                                                + + + - - +
-    +--------------+--------------+-----+-------+--------+
+    +--------------+------------    --+-----+-------+--------+
     | addressing   | assembler    | opc | bytes | cycles |
     +--------------+--------------+-----+-------+--------+
     | immediate    | SBC #oper    | E9  | 2     | 2      |
