@@ -103,3 +103,23 @@ void Mem::write(uint16_t address, uint8_t data)
 {
     bus -> write(address, data);
 }
+
+
+/*
+    Push data on stack
+*/
+void Mem::push(uint8_t & sp, uint8_t data)
+{
+    write(beg + sp, data);
+    sp--;
+}
+
+
+/*
+    Pull data from stack
+*/
+uint8_t Mem::pop(uint8_t & sp)
+{
+    sp++;
+    return read(beg + sp);
+}

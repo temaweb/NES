@@ -188,7 +188,7 @@ private:
     void CLI();  // Clear interrupt Disable Bit
     void CLV();  // Clear Overflow Flag
 
-    void CMP(uint8_t x);  // Compare Memory and arg
+    void CMP(uint8_t arg); 
     void CMP();  // Compare Memory and Accumulator
     void CPX();  // Compare Memory and Index X
     void CPY();  // Compare Memory and Index Y

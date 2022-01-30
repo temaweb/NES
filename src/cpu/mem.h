@@ -28,6 +28,11 @@ class Mem
 private:
 
     /*
+        Stack space from $0100 to $01FF
+    */
+    static const uint16_t beg = 0x100;
+
+    /*
         Bus communication interface
         Interact with each other devices i.e. RAM, APU, PPU etc.
     */
@@ -77,6 +82,16 @@ public:
         Write byte to bus without carry
     */
     void write(uint16_t address, uint8_t data);
+
+    /*
+        Push data on stack
+    */
+    void push(uint8_t & sp, uint8_t data);
+
+    /*
+        Pull data from stack
+    */
+    uint8_t pop(uint8_t & sp);
 };
 
 #endif

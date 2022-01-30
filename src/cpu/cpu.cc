@@ -520,14 +520,14 @@ void Cpu::ARR()
 */
 void Cpu::ASL() 
 {
-    uint16_t data  = read();
-    uint16_t shift = data << 1;
+    uint8_t data  = read();
+    uint8_t shift = data << 1;
 
     p.setNegative (shift);
     p.setZero     (shift);
-    p.setCarry    (shift);
+    p.setCarry    ((bool) (data & 0x80));
 
-    write((uint8_t) shift);
+    write(shift);
 }
 
 
@@ -710,8 +710,33 @@ void Cpu::BPL()
     flag set to 1. However, when retrieved during RTI or by a PLP
     instruction, the break flag will be ignored.
     The interrupt disable flag is not set automatically.
+
+    interrupt,
+    push PC+2, push SR                    N Z C I D V
+                                          - - - - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | BRK       | 00  | 1     | 7      |
+    +------------+-----------+-----+-------+--------+
 */
-void Cpu::BRK() { }
+void Cpu::BRK() 
+{
+    pc++;
+
+    uint8_t hi = (pc >> 8) & 0xFF;
+    uint8_t lo = pc & 0xFF;
+
+    mem -> push(s, hi);
+    mem -> push(s, lo);
+
+    mem -> push(s, p);
+
+    pc = 0xFFFE;
+    pc = mem -> direct(pc);
+
+    p.setInterrupt (true);
+}
 
 
 /*
@@ -951,7 +976,7 @@ void Cpu::DCP()
 */
 void Cpu::DEC() 
 { 
-    auto data = read() - 1;
+    uint8_t data = read() - 1;
 
     p.setNegative (data);
     p.setZero     (data);
@@ -1322,13 +1347,14 @@ void Cpu::LDY()
 */
 void Cpu::LSR() 
 { 
-    uint8_t data = read() >> 1;
+    uint8_t data  = read();
+    uint8_t shift = data >> 1; 
 
-    p.setZero     (data);
-    p.setCarry    (data);
-    p.setNegative (false);
+    p.setNegative (shift);
+    p.setZero     (shift);
+    p.setCarry    ((bool) (data & 0x01));
 
-    write(data);
+    write (shift);
 }
 
 
@@ -1408,7 +1434,7 @@ void Cpu::ORA()
 */
 void Cpu::PHA() 
 { 
-    mem -> write(s++, a);
+    mem -> push(s, a);
 }
 
 
@@ -1429,7 +1455,7 @@ void Cpu::PHA()
 */
 void Cpu::PHP() 
 { 
-    mem -> write(s++, p);
+    mem -> push(s, p);
 }
 
 
@@ -1447,7 +1473,7 @@ void Cpu::PHP()
 */
 void Cpu::PLA() 
 { 
-    a = mem -> read(s++);
+    a = mem -> pop(s);
 
     p.setNegative (a);
     p.setZero     (a);
@@ -1471,17 +1497,183 @@ void Cpu::PLA()
 */
 void Cpu::PLP() 
 { 
-    p = mem -> read(s++);
+    p = mem -> pop(s);
 }
 
 
-void Cpu::RLA() { }
-void Cpu::ROL() { }
-void Cpu::ROR() { }
-void Cpu::RRA() { }
-void Cpu::RTI() { }
-void Cpu::RTS() { }
-void Cpu::SAX() { }
+/*
+    RLA
+    ROL oper + AND oper
+
+    M = C <- [76543210] <- C, A AND M -> A     N Z C I D V
+                                               + + + - - -
+    +--------------+--------------+-----+-------+--------+
+    | addressing   | assembler    | opc | bytes | cycles |
+    +--------------+--------------+-----+-------+--------+
+    | zeropage     | RLA oper     | 27  | 2     | 5      |
+    | zeropage,X   | RLA oper,X   | 37  | 2     | 6      |
+    | absolute     | RLA oper     | 2F  | 3     | 6      |
+    | absolut,X    | RLA oper,X   | 3F  | 3     | 7      |
+    | absolut,Y    | RLA oper,Y   | 3B  | 3     | 7      |
+    | (indirect,X) | RLA (oper,X) | 23  | 2     | 8      |
+    | (indirect),Y | RLA (oper),Y | 33  | 2     | 8      |
+    +--------------+--------------+-----+-------+--------+
+*/
+void Cpu::RLA()
+{ 
+    NOP();
+}
+
+
+/*
+    ROL
+    Rotate One Bit Left (Memory or Accumulator)
+
+    C <- [76543210] <- C                    N Z C I D V
+                                            + + + - - -
+    +-------------+------------+-----+-------+--------+
+    | addressing  | assembler  | opc | bytes | cycles |
+    +-------------+------------+-----+-------+--------+
+    | accumulator | ROL A      | 2A  | 1     | 2      |
+    | zeropage    | ROL oper   | 26  | 2     | 5      |
+    | zeropage,X  | ROL oper,X | 36  | 2     | 6      |
+    | absolute    | ROL oper   | 2E  | 3     | 6      |
+    | absolute,X  | ROL oper,X | 3E  | 3     | 7      |
+    +-------------+------------+-----+-------+--------+
+*/
+void Cpu::ROL() 
+{ 
+    uint8_t data  = read();
+    uint8_t shift = (data << 1) | p.getCarry();
+
+    p.setNegative (shift);
+    p.setZero     (shift);
+    p.setCarry    ((bool) (data & 0x80));
+
+    write (shift);
+}
+
+
+/*
+    ROR
+    Rotate One Bit Right (Memory or Accumulator)
+
+    C -> [76543210] -> C                    N Z C I D V
+                                            + + + - - -
+    +-------------+------------+-----+-------+--------+
+    | addressing  | assembler  | opc | bytes | cycles |
+    +-------------+------------+-----+-------+--------+
+    | accumulator | ROR A      | 6A  | 1     | 2      |
+    | zeropage    | ROR oper   | 66  | 2     | 5      |
+    | zeropage,X  | ROR oper,X | 76  | 2     | 6      |
+    | absolute    | ROR oper   | 6E  | 3     | 6      |
+    | absolute,X  | ROR oper,X | 7E  | 3     | 7      |
+    +-------------+------------+-----+-------+--------+
+*/
+void Cpu::ROR() 
+{ 
+    uint8_t data  = read();
+    uint8_t shift = (data >> 1) | (p.getCarry() << 7);
+
+    p.setNegative (shift);
+    p.setZero     (shift);
+    p.setCarry    ((bool) (data & 0x01));
+
+    write (shift);
+}
+
+
+/*
+    RRA
+    ROR oper + ADC oper
+
+    M = C -> [76543210] -> C, A + M + C -> A, C
+
+                                               N Z C I D V
+                                               + + + - - +
+    +--------------+--------------+-----+-------+--------+
+    | addressing   | assembler    | opc | bytes | cycles |
+    +--------------+--------------+-----+-------+--------+
+    | zeropage     | RRA oper     | 67  | 2     | 5      |
+    | zeropage,X   | RRA oper,X   | 77  | 2     | 6      |
+    | absolute     | RRA oper     | 6F  | 3     | 6      |
+    | absolut,X    | RRA oper,X   | 7F  | 3     | 7      |
+    | absolut,Y    | RRA oper,Y   | 7B  | 3     | 7      |
+    | (indirect,X) | RRA (oper,X) | 63  | 2     | 8      |
+    | (indirect),Y | RRA (oper),Y | 73  | 2     | 8      |
+    +--------------+--------------+-----+-------+--------+
+*/
+void Cpu::RRA() 
+{ 
+    NOP();
+}
+
+
+/*
+    RTI
+    Return from Interrupt
+
+    The status register is pulled with the break flag
+    and bit 5 ignored. Then PC is pulled from the stack.
+
+    pull SR, pull PC                      
+
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | RTI       | 40  | 1     | 6      |
+    +------------+-----------+-----+-------+--------+
+*/
+void Cpu::RTI() 
+{ 
+    p = mem -> pop(s);
+
+    pc  = mem -> pop(s);
+    pc |= mem -> pop(s) << 8;
+}
+
+
+/*
+    RTS
+    Return from Subroutine
+
+    pull PC, PC+1 -> PC                   N Z C I D V
+                                          - - - - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | RTS       | 60  | 1     | 6      |
+    +------------+-----------+-----+-------+--------+
+*/
+void Cpu::RTS() 
+{ 
+    pc  = mem -> pop(s);
+    pc |= mem -> pop(s) << 8;
+
+    pc++;   
+}
+
+
+/*
+    SAX (AXS, AAX)
+    A and X are put on the bus at the same time 
+    (resulting effectively in an AND operation) and stored in M
+
+    A AND X -> M                               N Z C I D V
+                                               - - - - - -
+    +--------------+--------------+-----+-------+--------+
+    | addressing   | assembler    | opc | bytes | cycles |
+    +--------------+--------------+-----+-------+--------+
+    | zeropage     | SAX oper     | 87  | 2     | 3      |
+    | zeropage,Y   | SAX oper,Y   | 97  | 2     | 4      |
+    | absolute     | SAX oper     | 8F  | 3     | 4      |
+    | (indirect,X) | SAX (oper,X) | 83  | 2     | 6      |
+    +--------------+--------------+-----+-------+--------+
+*/
+void Cpu::SAX() 
+{ 
+    NOP();
+}
 
 
 /*
@@ -1490,7 +1682,7 @@ void Cpu::SAX() { }
 
     A - M - ~C -> A                            N Z C I D V
                                                + + + - - +
-    +--------------+------------    --+-----+-------+--------+
+    +--------------+--------------+-----+-------+--------+
     | addressing   | assembler    | opc | bytes | cycles |
     +--------------+--------------+-----+-------+--------+
     | immediate    | SBC #oper    | E9  | 2     | 2      |
@@ -1503,7 +1695,6 @@ void Cpu::SAX() { }
     | (indirect),Y | SBC (oper),Y | F1  | 2     | 5*     |
     +--------------+--------------+-----+-------+--------+
 */
-
 void Cpu::SBC() 
 { 
     auto data = read();
