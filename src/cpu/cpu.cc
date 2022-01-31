@@ -350,7 +350,9 @@ void Cpu::REL ()
 */
 void Cpu::ADC (uint8_t arg)
 {
-    uint16_t sum = a + arg + p.getCarry();
+    uint8_t carry = p.getCarry();
+    uint16_t sum  = a + arg + carry;
+
     a = (uint8_t) sum;
 
     if (p.isDecimal())
@@ -1701,23 +1703,419 @@ void Cpu::SBC()
     ADC(~data); 
 }
 
-void Cpu::SBX() { }
-void Cpu::SEC() { }
-void Cpu::SED() { }
-void Cpu::SEI() { }
-void Cpu::SHA() { }
-void Cpu::SHY() { }
-void Cpu::SHX() { }
-void Cpu::SLO() { }
-void Cpu::SRE() { }
-void Cpu::STA() { }
-void Cpu::STX() { }
-void Cpu::STY() { }
-void Cpu::TAS() { }
-void Cpu::TAX() { }
-void Cpu::TAY() { }
-void Cpu::TSX() { }
-void Cpu::TXA() { }
-void Cpu::TXS() { }
-void Cpu::TYA() { }
-void Cpu::USB() { }
+
+/*
+    SBX (AXS, SAX)
+    CMP and DEX at once, sets flags like CMP
+
+    (A AND X) - oper -> X                 N Z C I D V
+                                          + + + - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | immediate  | SBX #oper | CB  |     2 |      2 |
+    +------------+-----------+-----+-------+--------+
+*/
+void Cpu::SBX() 
+{ 
+    NOP();
+}
+
+
+/*
+    SEC
+    Set Carry Flag
+
+    1 -> C                                N Z C I D V
+                                          - - 1 - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | SEC       | 38  | 1     | 2      |
+    +------------+-----------+-----+-------+--------+
+*/
+void Cpu::SEC() 
+{ 
+    p.setCarry(true);
+}
+
+
+/*
+    SED
+    Set Decimal Flag
+
+    1 -> D                                N Z C I D V
+                                          - - - - 1 -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | SED       | F8  | 1     | 2      |
+    +------------+-----------+-----+-------+--------+
+*/
+void Cpu::SED() 
+{ 
+    p.setDecimal(true);
+}
+
+
+/*
+    SEI
+    Set Interrupt Disable Status
+
+    1 -> D                                N Z C I D V
+                                          - - - 1 - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | SEI       | 78  | 1     | 2      |
+    +------------+-----------+-----+-------+--------+
+*/
+void Cpu::SEI() 
+{ 
+    p.setInterrupt(true);
+}
+
+
+/*
+    SHA (AHX, AXA)
+    Stores A AND X AND (high-byte of addr. + 1) at addr.
+
+    unstable: sometimes 'AND (H+1)' is dropped, page boundary 
+    crossings may not work (with the high-byte of the value used 
+    as the high-byte of the address)
+
+    A AND X AND (H+1) -> M                         N Z C I D V
+                                                   - - - - - -
+    +--------------+--------------+-----+-------+--------+---+
+    | addressing   | assembler    | opc | bytes | cycles |   |
+    +--------------+--------------+-----+-------+--------+---+
+    | absolut,Y    | SHA oper,Y   | 9F  | 3     | 5      | † |
+    | (indirect),Y | SHA (oper),Y | 93  | 2     | 6      | † |
+    +--------------+--------------+-----+-------+--------+---+
+*/
+void Cpu::SHA() 
+{
+    NOP();
+}
+
+
+/*
+    SHY (A11, SYA, SAY)
+    Stores Y AND (high-byte of addr. + 1) at addr.
+
+    unstable: sometimes 'AND (H+1)' is dropped, page boundary 
+    crossings may not work (with the high-byte of the value 
+    used as the high-byte of the address)
+
+    Y AND (H+1) -> M                           N Z C I D V
+                                               - - - - - -
+    +------------+------------+-----+-------+--------+---+
+    | addressing | assembler  | opc | bytes | cycles |   |
+    +------------+------------+-----+-------+--------+---+
+    | absolut,X  | SHY oper,X | 9C  | 3     | 5      | † |
+    +------------+------------+-----+-------+--------+---+
+*/
+void Cpu::SHY() 
+{ 
+    NOP();
+}
+
+
+/*
+    SHX (A11, SXA, XAS)
+    Stores X AND (high-byte of addr. + 1) at addr.
+
+    unstable: sometimes 'AND (H+1)' is dropped, page boundary 
+    crossings may not work (with the high-byte of the value 
+    used as the high-byte of the address)
+
+    X AND (H+1) -> M                           N Z C I D V
+                                               - - - - - -
+    +------------+------------+-----+-------+--------+---+
+    | addressing | assembler  | opc | bytes | cycles |   |
+    +------------+------------+-----+-------+--------+---+
+    | absolut,Y  | SHX oper,Y | 9E  | 3     | 5      | † |
+    +------------+------------+-----+-------+--------+---+
+*/
+void Cpu::SHX() 
+{ 
+    NOP();
+}
+
+
+/*
+    SLO (ASO)
+    ASL oper + ORA oper
+
+    M = C <- [76543210] <- 0, A OR M -> A      N Z C I D V
+                                               + + + - - -
+    +--------------+--------------+-----+-------+--------+
+    | addressing   | assembler    | opc | bytes | cycles |
+    +--------------+--------------+-----+-------+--------+
+    | zeropage     | SLO oper     | 07  | 2     | 5      |
+    | zeropage,X   | SLO oper,X   | 17  | 2     | 6      |
+    | absolute     | SLO oper     | 0F  | 3     | 6      |
+    | absolut,X    | SLO oper,X   | 1F  | 3     | 7      |
+    | absolut,Y    | SLO oper,Y   | 1B  | 3     | 7      |
+    | (indirect,X) | SLO (oper,X) | 03  | 2     | 8      |
+    | (indirect),Y | SLO (oper),Y | 13  | 2     | 8      |
+    +--------------+--------------+-----+-------+--------+
+*/
+void Cpu::SLO() 
+{ 
+    NOP();
+}
+
+
+/*
+    SRE (LSE)
+    LSR oper + EOR oper
+
+    M = 0 -> [76543210] -> C, A EOR M -> A     N Z C I D V
+                                               + + + - - -
+    +--------------+--------------+-----+-------+--------+
+    | addressing   | assembler    | opc | bytes | cycles |
+    +--------------+--------------+-----+-------+--------+
+    | zeropage     | SRE oper     | 47  | 2     | 5      |
+    | zeropage,X   | SRE oper,X   | 57  | 2     | 6      |
+    | absolute     | SRE oper     | 4F  | 3     | 6      |
+    | absolut,X    | SRE oper,X   | 5F  | 3     | 7      |
+    | absolut,Y    | SRE oper,Y   | 5B  | 3     | 7      |
+    | (indirect,X) | SRE (oper,X) | 43  | 2     | 8      |
+    | (indirect),Y | SRE (oper),Y | 53  | 2     | 8      |
+    +--------------+--------------+-----+-------+--------+
+*/
+void Cpu::SRE() 
+{ 
+    NOP();
+}
+
+
+/*
+    STA
+    Store Accumulator in Memory
+
+    A -> M                                     N Z C I D V
+                                               - - - - - -
+    +--------------+--------------+-----+-------+--------+
+    | addressing   | assembler    | opc | bytes | cycles |
+    +--------------+--------------+-----+-------+--------+
+    | zeropage     | STA oper     | 85  | 2     | 3      |
+    | zeropage,X   | STA oper,X   | 95  | 2     | 4      |
+    | absolute     | STA oper     | 8D  | 3     | 4      |
+    | absolute,X   | STA oper,X   | 9D  | 3     | 5      |
+    | absolute,Y   | STA oper,Y   | 99  | 3     | 5      |
+    | (indirect,X) | STA (oper,X) | 81  | 2     | 6      |
+    | (indirect),Y | STA (oper),Y | 91  | 2     | 6      |
+    +--------------+--------------+-----+-------+--------+
+*/
+void Cpu::STA() 
+{ 
+    write(a);
+}
+
+
+/*
+    STX
+    Store Index X in Memory
+
+    X -> M                                 N Z C I D V
+                                           - - - - - -
+    +------------+------------+-----+-------+--------+
+    | addressing | assembler  | opc | bytes | cycles |
+    +------------+------------+-----+-------+--------+
+    | zeropage   | STX oper   | 86  | 2     | 3      |
+    | zeropage,Y | STX oper,Y | 96  | 2     | 4      |
+    | absolute   | STX oper   | 8E  | 3     | 4      |
+    +------------+------------+-----+-------+--------+
+*/
+void Cpu::STX() 
+{ 
+    write(x);
+}
+
+
+/*
+    STY
+    Store Index Y in Memory
+
+    Y -> M                                 N Z C I D V
+                                           - - - - - -
+    +------------+------------+-----+-------+--------+
+    | addressing | assembler  | opc | bytes | cycles |
+    +------------+------------+-----+-------+--------+
+    | zeropage   | STY oper   | 84  | 2     | 3      |
+    | zeropage,X | STY oper,X | 94  | 2     | 4      |
+    | absolute   | STY oper   | 8C  | 3     | 4      |
+    +------------+------------+-----+-------+--------+
+*/
+void Cpu::STY() 
+{ 
+    write(y);
+}
+
+
+/*
+    TAS (XAS, SHS)
+    Puts A AND X in SP and stores A AND X AND 
+    (high-byte of addr. + 1) at addr.
+
+    unstable: sometimes 'AND (H+1)' is dropped, page boundary 
+    crossings may not work (with the high-byte of the value 
+    used as the high-byte of the address)
+
+    A AND X -> SP, A AND X AND (H+1) -> M      N Z C I D V
+                                               - - - - - -
+    +------------+------------+-----+-------+--------+---+
+    | addressing | assembler  | opc | bytes | cycles |   |
+    +------------+------------+-----+-------+--------+---+
+    | absolut,Y  | TAS oper,Y | 9B  | 3     | 5      | † |
+    +------------+------------+-----+-------+--------+---+
+*/
+void Cpu::TAS() 
+{ 
+    NOP();
+}
+
+
+/*
+    TAX
+    Transfer Accumulator to Index X
+
+    A -> X                                N Z C I D V
+                                          + + - - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | TAX       | AA  | 1     | 2      |
+    +------------+-----------+-----+-------+--------+
+*/
+void Cpu::TAX() 
+{ 
+    x = a;
+
+    p.setNegative(x);
+    p.setZero    (x);
+}
+
+
+/*
+    TAY
+    Transfer Accumulator to Index Y
+
+    A -> Y                                N Z C I D V
+                                          + + - - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | TAX       | AA  | 1     | 2      |
+    +------------+-----------+-----+-------+--------+
+*/
+void Cpu::TAY() 
+{
+    y = a;
+
+    p.setNegative(y);
+    p.setZero    (y);
+}
+
+
+/*
+    TSX
+    Transfer Stack Pointer to Index X
+
+    SP -> X                               N Z C I D V
+                                          + + - - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | TSX       | BA  | 1     | 2      |
+    +------------+-----------+-----+-------+--------+
+*/
+void Cpu::TSX() 
+{ 
+    x = s;
+
+    p.setNegative(x);
+    p.setZero    (x);
+}
+
+
+/*
+    TXA
+    Transfer Index X to Accumulator
+
+    X -> A                                N Z C I D V
+                                          + + - - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | TXA       | 8A  | 1     | 2      |
+    +------------+-----------+-----+-------+--------+
+*/
+void Cpu::TXA() 
+{ 
+    a = x;
+
+    p.setNegative(a);
+    p.setZero    (a);
+}
+
+
+/*
+    TXS
+    Transfer Index X to Stack Register
+
+    X -> SP                               N Z C I D V
+                                          - - - - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | TXS       | 9A  | 1     | 2      |
+    +------------+-----------+-----+-------+--------+
+*/
+void Cpu::TXS() 
+{ 
+    s = x;
+}
+
+
+/*
+    TYA
+    Transfer Index Y to Accumulator
+
+    Y -> A                                N Z C I D V
+                                          + + - - - -
+    +------------+-----------+-----+-------+--------+
+    | addressing | assembler | opc | bytes | cycles |
+    +------------+-----------+-----+-------+--------+
+    | implied    | TYA       | 98  | 1     | 2      |
+    +------------+-----------+-----+-------+--------+
+*/
+void Cpu::TYA() 
+{ 
+    a = y;
+
+    p.setNegative(a);
+    p.setZero    (a);
+}
+
+
+/*
+    USBC (SBC)
+    SBC oper + NOP
+
+    effectively same as normal SBC immediate, instr. E9.
+
+    A - M - C -> A                         N Z C I D V
+                                           + + + - - +
+    +------------+------------+-----+-------+--------+
+    | addressing | assembler  | opc | bytes | cycles |
+    +------------+------------+-----+-------+--------+
+    | immediate  | USBC #oper | EB  | 2     | 2      |
+    +------------+------------+-----+-------+--------+
+*/
+void Cpu::USB() 
+{ 
+    NOP();
+}
