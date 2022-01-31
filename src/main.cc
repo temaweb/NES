@@ -29,7 +29,6 @@
 // Caption text style
 static const fmt::text_style caption = fg(fmt::color::dark_gray) | fmt::emphasis::underline;
 
-
 int main()
 {
     fmt::print(caption, "\nDissassembly\n\n");

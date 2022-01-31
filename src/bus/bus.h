@@ -24,9 +24,10 @@
 class Bus
 {
 private:
+    using memory = std::array<uint8_t, 64 * 1024>;
 
     // Temporary 64KB RAM
-    std::array<uint8_t, 64 * 1024> ram {};
+    memory ram {};
 
 public:
 

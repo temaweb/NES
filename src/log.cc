@@ -55,7 +55,7 @@ void Log::step (uint16_t pc, const Cmd & cmd, const Cpu * cpu) const
     fmt::print(code, "{} ", cmd.name);
 
     // Command arguments    
-    printArgs(pc, cmd.bytes); 
+    printArgs(pc, cmd.getBytes()); 
 
     // Registers
     fmt::print(light, 

@@ -33,11 +33,6 @@ public:
     std::string name;
 
     /*
-        Command length with arguments
-    */
-    uint8_t bytes;
-
-    /*
         Programm cycles need to execute command
     */
     uint8_t cycles;
@@ -77,6 +72,20 @@ public:
     */
     bool isRel() const {
         return mode == &Cpu::REL;
+    }
+
+    /*
+        Command length in bytes
+    */
+    uint8_t getBytes() const
+    {
+        if (mode == &Cpu::ACC || mode == &Cpu::IMP)
+            return 1;
+
+        if (mode == &Cpu::ABS || mode == &Cpu::ABSX || mode == &Cpu::ABSX)
+            return 3;
+
+        return 2;
     }
 };
 

@@ -39,12 +39,14 @@ Cpu::Cpu(std::shared_ptr<Bus> bus)
 /*
     Default destructor
 */
+
 Cpu::~Cpu() = default;
 
 
 /*
     Read data from memory/accumulator
 */
+
 uint8_t Cpu::read() const
 {
     if (cmd -> isAcc())
@@ -57,6 +59,7 @@ uint8_t Cpu::read() const
 /* 
     Write data to memory or accumulator 
 */
+
 void Cpu::write (uint8_t data)
 {
     if (cmd -> isAcc()) {
