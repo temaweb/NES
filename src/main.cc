@@ -37,15 +37,15 @@ int main()
     auto log = std::make_shared<Log>(bus);
     auto cpu = std::make_unique<Cpu>(bus);
 
-    bus -> write(0x0000, 0xA9); // LDA #$01 ; load accumulator with memory
-    bus -> write(0x0001, 0x01);
+    bus -> write(0x0100, 0xA9); // LDA #$01 ; load accumulator with memory
+    bus -> write(0x0101, 0x01);
 
-    bus -> write(0x0002, 0x99); // STA $0002,Y ; store accumulator in memory
-    bus -> write(0x0003, 0x02);
-    bus -> write(0x0004, 0x00);
+    bus -> write(0x0102, 0x99); // STA $0002,Y ; store accumulator in memory
+    bus -> write(0x0103, 0x02);
+    bus -> write(0x0104, 0x00);
 
-    bus -> write(0x0005, 0x69); // ADC #$01 ; add memory to accumulator with carry
-    bus -> write(0x0006, 0x01); 
+    bus -> write(0x0105, 0x69); // ADC #$01 ; add memory to accumulator with carry
+    bus -> write(0x0106, 0x01); 
 
     auto steps = 5;
 

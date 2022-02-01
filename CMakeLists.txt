@@ -1,9 +1,13 @@
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.19)
 
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CMAKE_OSX_ARCHITECTURES x86_64;arm64)
+
+# For Apple M1 compile x86 layer for debugging
+if (CMAKE_APPLE_SILICON_PROCESSOR)
+    set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64")
+endif()
 
 add_subdirectory("ext/fmt")
 
