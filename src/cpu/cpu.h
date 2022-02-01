@@ -161,21 +161,20 @@ private:
     // Instruction set
     //
 
-    void ADC(); // Add Memory to Accumulator with Carry
     void ADC(uint8_t arg);
+    void CMP(uint8_t arg);
 
+    void ADC(); // Add Memory to Accumulator with Carry
     void ALR();  // AND opration and LSR
     void ANC();  // AND opration and set C as ASL
     void AND();  // AND Memory with Accumulator
     void ANE();  // (A OR CONST) and X "AND" operation
     void ARR();  // AND opration and ROR
     void ASL();  // Shift Left One Bit (Memory or Accumulator)
-    
     void BRA();  // Branch 
     void BCC();  // Branch on Carry Clear
     void BCS();  // Branch on Carry Set
     void BEQ();  // Branch on Result Zero
-
     void BIT();  // Test Bits in Memory with Accumulator
     void BMI();  // Branch on Result Minus
     void BNE();  // Branch on Result not Zero
@@ -187,8 +186,6 @@ private:
     void CLD();  // Clear Decimal Mode
     void CLI();  // Clear interrupt Disable Bit
     void CLV();  // Clear Overflow Flag
-
-    void CMP(uint8_t arg); 
     void CMP();  // Compare Memory and Accumulator
     void CPX();  // Compare Memory and Index X
     void CPY();  // Compare Memory and Index Y
