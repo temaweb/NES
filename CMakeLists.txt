@@ -4,13 +4,6 @@ cmake_minimum_required(VERSION 3.19)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# For Apple M1 compile x86 layer for debugging
-if (CMAKE_APPLE_SILICON_PROCESSOR)
-    set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64")
-endif()
-
-add_subdirectory("ext/fmt")
-
 # set the project name
 project(NES VERSION 1.0)
 
@@ -21,6 +14,14 @@ else()
     # lots of warnings and all warnings as errors
     add_compile_options(-Wall -Wextra -pedantic -Werror)
 endif()
+
+# For Apple M1 compile x86 layer for debugging
+if (APPLE AND CMAKE_SYSTEM_PROCESSOR MATCHES "^arm64")
+    set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64")
+endif()
+
+# add fmt library
+add_subdirectory("ext/fmt")
 
 # create emulator target
 add_executable(emulator)
