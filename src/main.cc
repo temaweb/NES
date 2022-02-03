@@ -38,7 +38,6 @@ static const fmt::text_style caption = fg(fmt::color::dark_gray) | fmt::emphasis
 // Memory bus
 std::shared_ptr<Bus> bus = std::make_shared<Bus>();
 
-
 /*
     Load ROM to memory
 */
@@ -54,10 +53,16 @@ void load(std::string path)
         return;
     }
     
-    file.read ( 
-        (char *) bus -> begin(), 
-        (std::streamsize) bus -> size()
-    );
+    #ifdef WIN32
+
+        // ~
+
+    #else
+        file.read ( 
+            (std::ifstream::char_type *) bus -> begin(), 
+            (std::streamsize) bus -> size()
+        );
+    #endif
 
     file.close();
 }

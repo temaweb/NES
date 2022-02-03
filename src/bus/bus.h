@@ -46,7 +46,7 @@ public:
     */
     void printDump (uint16_t from = 0x00, uint16_t to = 0xFF) const;
 
-    memory::value_type * begin() {
+    memory::iterator begin() {
         return ram.begin();
     }
     
