@@ -123,7 +123,7 @@ private:
     //      This can be done either by jumping to a subroutine or by causing an interrupt.
     //
 
-    uint16_t pc = 0x0100;
+    uint16_t pc = 0x0400;
 
 
     // 6502 instruction mapping (mnemonic table)

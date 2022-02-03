@@ -869,9 +869,9 @@ void Cpu::CMP(uint8_t arg)
 { 
     auto data = read();
 
-    p.setNegative ( data >  arg );
-    p.setZero     ( data == arg );
-    p.setCarry    ( data <= arg );
+    p.setNegative ( (bool) (data >  arg) );
+    p.setZero     ( (bool) (data == arg) );
+    p.setCarry    ( (bool) (data <= arg) );
 }
 
 
@@ -1205,11 +1205,13 @@ void Cpu::JMP()
 */
 void Cpu::JSR() 
 { 
+    pc--;
+
     uint8_t lo = (0x00FF & pc);
     uint8_t hi = (0xFF00 & pc) >> 8; 
 
-    mem -> write(s++, lo);
-    mem -> write(s++, hi);
+    mem -> push(s, hi);
+    mem -> push(s, lo);
 
     JMP();
 }
@@ -1460,7 +1462,10 @@ void Cpu::PHA()
 */
 void Cpu::PHP() 
 { 
-    mem -> push(s, p);
+    auto status = p;
+    status.setBreak(true);
+
+    mem -> push(s, status);
 }
 
 
@@ -1502,7 +1507,10 @@ void Cpu::PLA()
 */
 void Cpu::PLP() 
 { 
+    bool isBreak = p.isBreak();
+
     p = mem -> pop(s);
+    p.setBreak(isBreak);
 }
 
 

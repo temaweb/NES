@@ -108,6 +108,11 @@ public:
     }
 
     /*
+        Set/Unset Zero flag
+    */
+    void setZero(bool isSet);
+    
+    /*
         Set/Unset Overflow flag
     */
     void setOverflow(bool isSet);
@@ -121,6 +126,11 @@ public:
         Set/Unset Interrupt flag
     */
     void setInterrupt(bool isSet);
+
+    /*
+        Set/Unset Break flag
+    */
+    void setBreak(bool isSet);
 
     /*
         Returns Carry flag
@@ -166,6 +176,11 @@ public:
         Returns true if Carry flag is set
     */
     bool isCarry() const;
+
+    /*
+        Returns true if Break flag is set
+    */
+    bool isBreak() const;
 
     /*
         Returns true if Negative flag is set

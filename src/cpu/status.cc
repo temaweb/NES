@@ -70,6 +70,13 @@ bool Status::isCarry() const {
 }
 
 /*
+    Returns true if Break flag is set
+*/
+bool Status::isBreak() const {
+    return isSet(Flags::Break);
+}
+
+/*
     Returns true if Zero flag is set
 */
 bool Status::isZero() const {
@@ -123,6 +130,20 @@ void Status::setDecimal(bool isSet) {
 */
 void Status::setInterrupt(bool isSet) {
     setFlag(Flags::Interrupt, isSet);
+}
+
+/*
+    Set/Unset Break flag
+*/
+void Status::setBreak(bool isSet) {
+    setFlag(Flags::Break, isSet);
+}
+
+/*
+    Set/Unset Zero flag
+*/
+void Status::setZero(bool isSet) {
+    setFlag(Flags::Zero, isSet);
 }
 
 /*
