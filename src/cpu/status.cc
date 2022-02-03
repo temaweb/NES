@@ -126,6 +126,13 @@ void Status::setInterrupt(bool isSet) {
 }
 
 /*
+    Set/Unset Zero flag
+*/
+void Status::setZero(bool isSet) {
+    setFlag(Flags::Zero, isSet);
+}
+
+/*
     Returns Carry flag
 */
 uint8_t Status::getCarry() const {

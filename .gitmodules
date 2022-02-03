@@ -1,3 +1,9 @@
 [submodule "ext/fmt"]
 	path = ext/fmt
 	url = https://github.com/fmtlib/fmt.git
+[submodule "ext/asm"]
+	path = ext/asm
+	url = https://github.com/Klaus2m5/6502_65C02_functional_tests.git
+[submodule "ext/cli"]
+	path = ext/cli
+	url = https://github.com/CLIUtils/CLI11.git

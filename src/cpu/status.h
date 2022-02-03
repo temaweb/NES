@@ -108,6 +108,11 @@ public:
     }
 
     /*
+        Set/Unset Zero flag
+    */
+    void setZero(bool isSet);
+
+    /*
         Set/Unset Overflow flag
     */
     void setOverflow(bool isSet);

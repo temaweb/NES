@@ -17,6 +17,7 @@
 
 #include <memory>
 #include <iostream>
+#include <fstream>
 
 #include "log.h"
 
@@ -24,38 +25,104 @@
 #include "bus/bus.h"
 
 #include "fmt/core.h"
+#include "fmt/format.h"
 #include "fmt/color.h"
+
+#include "CLI/App.hpp"
+#include "CLI/Formatter.hpp"
+#include "CLI/Config.hpp"
 
 // Caption text style
 static const fmt::text_style caption = fg(fmt::color::dark_gray) | fmt::emphasis::underline;
 
-int main()
-{
-    fmt::print(caption, "\nDissassembly\n\n");
+// Memory bus
+std::shared_ptr<Bus> bus = std::make_shared<Bus>();
 
-    auto bus = std::make_shared<Bus>();
+/*
+    Load ROM to memory
+*/
+void load(std::string path, const std::shared_ptr<Bus> & bus)
+{
+    std::ifstream file(path, std::ios::in | std::ios::binary);
+
+    if (!file.is_open())
+    {
+        std::cerr << "File not found " << path;
+        exit(EXIT_FAILURE);
+        
+        return;
+    }
+    
+    file.read((std::ifstream::char_type *) bus -> begin(), (std::streamsize) bus -> size());
+    file.close();
+}
+
+/*
+    Load ROM
+*/
+void load_rom(std::string rom)
+{
+    auto path = fmt::format("../ext/asm/bin_files/{}", rom);
+    load(path, bus);
+}
+
+/*
+    Run CPU
+*/
+void run(int cycles)
+{
     auto log = std::make_shared<Log>(bus);
     auto cpu = std::make_unique<Cpu>(bus);
 
-    bus -> write(0x0100, 0xA9); // LDA #$01 ; load accumulator with memory
-    bus -> write(0x0101, 0x01);
-
-    bus -> write(0x0102, 0x99); // STA $0002,Y ; store accumulator in memory
-    bus -> write(0x0103, 0x02);
-    bus -> write(0x0104, 0x00);
-
-    bus -> write(0x0105, 0x69); // ADC #$01 ; add memory to accumulator with carry
-    bus -> write(0x0106, 0x01); 
-
-    auto steps = 5;
-
-    while (steps--) {
+    fmt::print(caption, "\nDissassembly\n\n");
+        
+    while (cycles--) {
         cpu -> clock();
     }
+}
 
-    // Memory dump
+
+/*
+    Print memory dump
+*/
+void dump(uint16_t from, uint16_t to)
+{
     fmt::print(caption, "\n\nMemory dump from {:#04x} to {:#04x}\n", 0x00, 0xFF);
 
-    bus -> printDump(0x02, 0xF2);
+    bus -> printDump(from, to);
     fmt::print("\n\n");
+}
+
+/*
+    ~
+*/
+int main(int argc, char** argv)
+{
+    CLI::App app {"MOS 6502 CPU Emulator"};
+
+    uint16_t c;
+    uint16_t f;
+    uint16_t t; 
+
+    app.add_option ("-c", c, "CPU loop cycles")                -> default_val(1000);
+    app.add_option ("-f", f, "Print memory dump from address") -> default_val(0x0000);
+    app.add_option ("-t", t, "Print memory dump to address")   -> default_val(0x00FF);
+
+    try
+    {
+        app.parse(argc, argv);
+        load_rom("6502_functional_test.bin");
+
+        // Run CPU loop
+        run (c);
+ 
+        // Print memory dump
+        dump (f, t);
+    }
+    catch(const CLI::ParseError & e) {
+        return app.exit(e);
+    }
+    catch(const std::exception & e) {
+        std::cerr << e.what() << '\n';
+    }
 }

@@ -1631,7 +1631,7 @@ void Cpu::RRA()
 */
 void Cpu::RTI() 
 { 
-    p = mem -> pop(s);
+    p   = mem -> pop(s); 
 
     pc  = mem -> pop(s);
     pc |= mem -> pop(s) << 8;

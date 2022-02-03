@@ -45,6 +45,14 @@ public:
         Print memory dump
     */
     void printDump (uint16_t from = 0x00, uint16_t to = 0xFF) const;
+
+    memory::iterator begin() {
+        return ram.begin();
+    }
+    
+    memory::size_type size() {
+        return ram.size();
+    }
 };
 
 #endif
