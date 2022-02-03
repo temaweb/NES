@@ -59,7 +59,7 @@ public:
         // ~
         return cycles;
     }
-
+    
     /*
         Command is Accumulator adressing
     */
@@ -79,10 +79,10 @@ public:
     */
     uint8_t getBytes() const
     {
-        if (mode == &Cpu::ACC || mode == &Cpu::IMP)
+        if (isAcc() || mode == &Cpu::IMP)
             return 1;
 
-        if (mode == &Cpu::ABS || mode == &Cpu::ABSX || mode == &Cpu::ABSX)
+        if (mode == &Cpu::ABS || mode == &Cpu::ABSX || mode == &Cpu::ABSY)
             return 3;
 
         return 2;

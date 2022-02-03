@@ -133,13 +133,6 @@ void Status::setInterrupt(bool isSet) {
 }
 
 /*
-    Set/Unset Break flag
-*/
-void Status::setBreak(bool isSet) {
-    setFlag(Flags::Break, isSet);
-}
-
-/*
     Set/Unset Zero flag
 */
 void Status::setZero(bool isSet) {

@@ -20,8 +20,9 @@ if (APPLE AND CMAKE_SYSTEM_PROCESSOR MATCHES "^arm64")
     set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64")
 endif()
 
-# add fmt library
+# add external modules
 add_subdirectory("ext/fmt")
+add_subdirectory("ext/cli")
 
 # create emulator target
 add_executable(emulator)
@@ -40,5 +41,5 @@ target_sources(emulator PRIVATE
 # add target-specific include directory
 target_include_directories(emulator PUBLIC "src")
 
-# add {fmt} library
-target_link_libraries(emulator fmt::fmt)
+# add {fmt} and CLI11 library
+target_link_libraries(emulator fmt::fmt CLI11::CLI11)
