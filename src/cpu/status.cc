@@ -140,6 +140,13 @@ void Status::setZero(bool isSet) {
 }
 
 /*
+    Set/Unset Break flag
+*/
+void Status::setBreak(bool isSet) {
+    setFlag(Flags::Break, isSet);
+}
+
+/*
     Returns Carry flag
 */
 uint8_t Status::getCarry() const {
