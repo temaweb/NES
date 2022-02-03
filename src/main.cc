@@ -38,10 +38,11 @@ static const fmt::text_style caption = fg(fmt::color::dark_gray) | fmt::emphasis
 // Memory bus
 std::shared_ptr<Bus> bus = std::make_shared<Bus>();
 
+
 /*
     Load ROM to memory
 */
-void load(std::string path, const std::shared_ptr<Bus> & bus)
+void load(std::string path)
 {
     std::ifstream file(path, std::ios::in | std::ios::binary);
 
@@ -53,9 +54,14 @@ void load(std::string path, const std::shared_ptr<Bus> & bus)
         return;
     }
     
-    file.read((std::ifstream::char_type *) bus -> begin(), (std::streamsize) bus -> size());
+    file.read ( 
+        (char *) bus -> begin(), 
+        (std::streamsize) bus -> size()
+    );
+
     file.close();
 }
+
 
 /*
     Load ROM
@@ -63,8 +69,9 @@ void load(std::string path, const std::shared_ptr<Bus> & bus)
 void load_rom(std::string rom)
 {
     auto path = fmt::format("../ext/asm/bin_files/{}", rom);
-    load(path, bus);
+    load(path);
 }
+
 
 /*
     Run CPU
@@ -104,9 +111,14 @@ int main(int argc, char** argv)
     uint16_t f;
     uint16_t t; 
 
-    app.add_option ("-c", c, "CPU loop cycles")                -> default_val(1000);
-    app.add_option ("-f", f, "Print memory dump from address") -> default_val(0x0000);
-    app.add_option ("-t", t, "Print memory dump to address")   -> default_val(0x00FF);
+    app.add_option ("-c", c, "CPU loop cycles")                
+        -> default_val(1000);
+
+    app.add_option ("-f", f, "Print memory dump from address") 
+        -> default_val(0x0000);
+
+    app.add_option ("-t", t, "Print memory dump to address")   
+        -> default_val(0x00FF);
 
     try
     {
