@@ -45,8 +45,10 @@ Log::Log(std::shared_ptr<Bus> bus) : bus(bus)
 /*
     Disassembly operation and print details
 */
-void Log::step (uint16_t pc, const Cmd & cmd, const Cpu * cpu) const
+void Log::step (uint32_t counter, uint16_t pc, const Cmd & cmd, const Cpu * cpu) const
 {
+    fmt::print(dark, "{:06} ", counter);
+
     // Programm counter & Operation code
     fmt::print(dark, "{:#06x} ", pc);
     fmt::print(dark, "{:#04x} ", bus -> read(pc));
@@ -57,6 +59,9 @@ void Log::step (uint16_t pc, const Cmd & cmd, const Cpu * cpu) const
     // Command arguments    
     printArgs(pc, cmd.getBytes()); 
 
+    // Print memory at argument
+    fmt::print(dark, "${:02X} ", bus -> read(cpu -> op));
+
     // Registers
     fmt::print(light, 
         "A:{:02X} X:{:02X} Y:{:02X} S:{:02X} ", 
@@ -66,16 +71,23 @@ void Log::step (uint16_t pc, const Cmd & cmd, const Cpu * cpu) const
             cpu -> s
     );
 
+    // Print memory at argument
+    fmt::print(light, "${:02X} ${:02X} ${:02X} ", 
+        bus -> read(0x0100 + cpu -> s - 1),
+        bus -> read(0x0100 + cpu -> s),
+        bus -> read(0x0100 + cpu -> s + 1));
+
     // Status register
     fmt::print(dark, 
-        "N:{} Z:{} C:{} I:{} D:{} V:{} B:{}\n", 
+        "N:{} V:{} -:{} B:{} D:{} I:{} Z:{} C:{}\n", 
             cpu -> p.getNegative(),
-            cpu -> p.getZero(),
-            cpu -> p.getCarry(),
-            cpu -> p.getInterrupt(),
-            cpu -> p.getDecimal(),
             cpu -> p.getOverflow(),
-            cpu -> p.getBreak()
+            cpu -> p.getDefault(),
+            cpu -> p.getBreak(),
+            cpu -> p.getDecimal(),
+            cpu -> p.getInterrupt(),
+            cpu -> p.getZero(),
+            cpu -> p.getCarry()
     );
 }
 

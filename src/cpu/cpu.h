@@ -138,7 +138,9 @@ private:
 
     // Current processed command
     const Cmd * cmd;
-    
+
+    uint32_t counter = 0;
+
     //
     // Addressing modes
     //

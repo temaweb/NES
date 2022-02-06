@@ -39,7 +39,7 @@ public:
     /*
         Disassembly operation
     */
-    void step (uint16_t pc, const Cmd & cmd, const Cpu * cpu) const;
+    void step (uint32_t counter, uint16_t pc, const Cmd & cmd, const Cpu * cpu) const;
 };
 
 #endif

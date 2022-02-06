@@ -64,7 +64,7 @@ uint16_t Mem::indirect(uint16_t & pc)
 uint16_t Mem::abs(uint16_t & pc, uint8_t rg)
 {
     auto index = direct(pc);
-    return 0xFFFF & (index + rg);      
+    return index + rg;      
 } 
 
 
@@ -74,10 +74,10 @@ uint16_t Mem::abs(uint16_t & pc, uint8_t rg)
 
 uint8_t Mem::zpg(uint16_t & pc, uint8_t rg)
 {
-    auto lo = read(pc++);
+    auto zp = read(pc++);
 
     // Zeropage only
-    return 0x00FF & (lo + rg);
+    return 0x00FF & (zp + rg);
 }
 
 
@@ -87,10 +87,10 @@ uint8_t Mem::zpg(uint16_t & pc, uint8_t rg)
 
 uint16_t Mem::indexed(uint16_t & pc, uint8_t rg)
 {
-    uint16_t zp = zpg(pc, rg);
+    uint16_t zp = zpg(pc);
 
-    uint16_t lo = read(0x00FF & zp++);
-    uint16_t hi = read(0x00FF & zp++);
+    uint16_t lo = read(0x00FF & (rg + zp++));
+    uint16_t hi = read(0x00FF & (rg + zp++));
 
     return (hi << 8) | lo;
 }

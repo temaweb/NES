@@ -104,7 +104,7 @@ public:
     */
     template<typename T> 
     void setZero(const T & value) {
-        setFlag(Flags::Zero, value == 0x00);
+        setFlag(Flags::Zero, (value & 0x00FF) == 0x00);
     }
 
     /*
@@ -166,6 +166,11 @@ public:
         Returns Zero flag
     */
     uint8_t getZero() const;
+
+    /*
+        Returns Default flag
+    */
+    uint8_t getDefault() const;
 
     /*
         Returns true if Decimal flag is set

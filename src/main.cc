@@ -112,12 +112,12 @@ int main(int argc, char** argv)
 {
     CLI::App app {"MOS 6502 CPU Emulator"};
 
-    uint16_t c;
+    uint32_t c;
     uint16_t f;
     uint16_t t; 
 
     app.add_option ("-c", c, "CPU loop cycles")                
-        -> default_val(1000);
+        -> default_val(100000000);
 
     app.add_option ("-f", f, "Print memory dump from address") 
         -> default_val(0x0000);
@@ -128,6 +128,7 @@ int main(int argc, char** argv)
     try
     {
         app.parse(argc, argv);
+        
         load_rom("6502_functional_test.bin");
 
         // Run CPU loop

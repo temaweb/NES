@@ -77,6 +77,8 @@ void Cpu::write (uint8_t data)
 
 void Cpu::clock ()
 {
+    counter++;
+
     auto temp = pc;
 
     auto code = mem -> read(pc++);  
@@ -88,7 +90,8 @@ void Cpu::clock ()
     oper.execute(this);
 
     // Disassembled output
-    log -> step(temp, oper, this);
+    if (counter > 26764002)
+        log -> step(counter, temp, oper, this);
 }
 
 
@@ -325,8 +328,7 @@ void Cpu::INDY ()
     // Operand is zeropage address; 
     // Effective address is word in (LL, LL + 1) incremented by Y with carry: C.w($00LL) + Y
 
-    auto index = mem -> indexed(pc);
-    op = 0x00FF & (index + y);
+    op = mem -> indexed(pc) + y;
 }
 
 
@@ -353,19 +355,15 @@ void Cpu::REL ()
 */
 void Cpu::ADC (uint8_t arg)
 {
-    uint8_t carry = p.getCarry();
-    uint16_t sum  = a + arg + carry;
-
-    a = (uint8_t) sum;
-
-    if (p.isDecimal())
-    {
-        // BCD mode
-    }
+    uint16_t crr = p.getCarry();
+    uint16_t sum = (uint16_t) a + (uint16_t) arg + crr;
 
     p.setNegative (sum);
     p.setZero     (sum);
-    p.setCarry    (sum);
+    p.setCarry    ((bool) (sum > 255));
+    p.setOverflow ((bool) (~(a ^ arg) & (a ^ sum) & 0x80));
+
+    a = 0x00FF & sum;
 }
 
 /*
@@ -546,7 +544,14 @@ void Cpu::ASL()
 */
 void Cpu::BRA()
 {
-    pc += (int8_t) read();
+    uint16_t rel = read();
+
+    if (rel & 0x80) 
+    {
+		rel |= 0xFF00;
+    }
+
+    pc += rel;
 }
 
 
@@ -729,18 +734,21 @@ void Cpu::BRK()
 {
     pc++;
 
+    uint8_t lo =  pc & 0xFF;
     uint8_t hi = (pc >> 8) & 0xFF;
-    uint8_t lo = pc & 0xFF;
 
+    // ~
     mem -> push(s, hi);
     mem -> push(s, lo);
-
+    
+    // ~
     mem -> push(s, p);
 
     pc = 0xFFFE;
     pc = mem -> direct(pc);
 
     p.setInterrupt (true);
+    p.setBreak     (false);
 }
 
 
@@ -981,7 +989,9 @@ void Cpu::DCP()
 */
 void Cpu::DEC() 
 { 
-    uint8_t data = read() - 1;
+    uint16_t data = read();
+
+    data--;
 
     p.setNegative (data);
     p.setZero     (data);
@@ -1077,7 +1087,7 @@ void Cpu::EOR()
 */
 void Cpu::INC() 
 { 
-    auto data = read();
+    uint16_t data = read();
 
     data++;
 
@@ -1462,10 +1472,9 @@ void Cpu::PHA()
 */
 void Cpu::PHP() 
 { 
-    auto status = p;
-    status.setBreak(true);
+    mem -> push(s, p);
 
-    mem -> push(s, status);
+    p.setBreak(false);
 }
 
 
@@ -1507,10 +1516,7 @@ void Cpu::PLA()
 */
 void Cpu::PLP() 
 { 
-    bool isBreak = p.isBreak();
-
     p = mem -> pop(s);
-    p.setBreak(isBreak);
 }
 
 
@@ -1643,6 +1649,8 @@ void Cpu::RTI()
 
     pc  = mem -> pop(s);
     pc |= mem -> pop(s) << 8;
+
+    p.setBreak(false);
 }
 
 

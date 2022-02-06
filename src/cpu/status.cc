@@ -196,8 +196,15 @@ uint8_t Status::getZero() const {
 }
 
 /*
+    Returns Default flag
+*/
+uint8_t Status::getDefault() const {
+    return getFlag(Flags::Default);
+}
+
+/*
     Explicit cast to uint8_t
 */
 Status::operator uint8_t() const {
-    return status;
+    return status | Flags::Break | Flags::Default;
 }
