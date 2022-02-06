@@ -996,7 +996,7 @@ void Cpu::DEC()
     p.setNegative (data);
     p.setZero     (data);
 
-    write(data);
+    write((uint8_t) data);
 }
 
 
@@ -1094,7 +1094,7 @@ void Cpu::INC()
     p.setNegative (data);
     p.setZero     (data);
 
-    write(data);
+    write((uint8_t) data);
 }
 
 
