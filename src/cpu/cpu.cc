@@ -355,8 +355,7 @@ void Cpu::REL ()
 */
 void Cpu::ADC (uint8_t arg)
 {
-    uint16_t crr = p.getCarry();
-    uint16_t sum = (uint16_t) a + (uint16_t) arg + crr;
+    uint16_t sum = (uint16_t) a + (uint16_t) arg + p.getCarry();
 
     p.setNegative (sum);
     p.setZero     (sum);
@@ -544,14 +543,7 @@ void Cpu::ASL()
 */
 void Cpu::BRA()
 {
-    uint16_t rel = read();
-
-    if (rel & 0x80) 
-    {
-		rel |= 0xFF00;
-    }
-
-    pc += rel;
+    pc += (int8_t) read();
 }
 
 
@@ -734,21 +726,20 @@ void Cpu::BRK()
 {
     pc++;
 
-    uint8_t lo =  pc & 0xFF;
-    uint8_t hi = (pc >> 8) & 0xFF;
+    uint8_t lo = (pc & 0x00FF);
+    uint8_t hi = (pc & 0xFF00) >> 8;
 
-    // ~
+    // Push program counter
     mem -> push(s, hi);
     mem -> push(s, lo);
     
-    // ~
+    // Push status register
     mem -> push(s, p);
 
-    pc = 0xFFFE;
-    pc = mem -> direct(pc);
+    pc  = mem -> read(0xFFFE);
+    pc |= mem -> read(0xFFFF) << 8;
 
     p.setInterrupt (true);
-    p.setBreak     (false);
 }
 
 
